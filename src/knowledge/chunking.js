@@ -1,0 +1,2 @@
+export function cleanText(text) { return String(text).replace(/\r/g, '').replace(/[ \t]+/g, ' ').replace(/\n{3,}/g, '\n\n').trim(); }
+export function splitIntoChunks(text, size = 700) { const paragraphs = cleanText(text).split(/\n\n+/); const chunks = []; let current = ''; for (const paragraph of paragraphs) { if ((current + ' ' + paragraph).length > size && current) { chunks.push(current); current = paragraph; } else current = `${current}${current ? '\n\n' : ''}${paragraph}`; } if (current) chunks.push(current); return chunks; }

@@ -1,0 +1,12 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import { createRequest } from '../src/domain/request.js';
+import { MemoryRequestRepository } from '../src/repositories/request-repository.js';
+import { MemoryKnowledgeRepository } from '../src/knowledge/repository.js';
+import { KnowledgeService } from '../src/knowledge/service.js';
+import { IntakeReasoningService } from '../src/reasoning/service.js';
+import { RuleBasedIntakeProvider } from '../src/reasoning/provider.js';
+class TestStorage { async save() { return 'test'; } }
+async function setup(description = 'Water is leaking under the kitchen sink.') { const repository = new MemoryRequestRepository(); const knowledge = new KnowledgeService({ repository: new MemoryKnowledgeRepository(), storage: new TestStorage() }); await repository.create(createRequest({ name: 'Jane', phone: '0400', serviceAddress: '1 Main St', preferredContactMethod: 'phone', description })); const request = (await repository.list())[0]; return { repository, knowledge, request, service: new IntakeReasoningService({ repository, knowledgeService: knowledge, provider: new RuleBasedIntakeProvider() }) }; }
+test('reasoning persists state, skips answered questions, and asks only for intake facts', async () => { const { repository, request, service } = await setup(); const result = await service.respond(request.id, 'It happens every time the tap is running, and it started yesterday.'); const stored = await repository.getById(request.id); assert.equal(result.decision.next_action, 'ask_question'); assert.match(result.decision.question, /Where exactly/i); assert.equal(stored.status, 'in_progress'); assert.equal(stored.messages.length, 3); assert.match(JSON.stringify(stored.requestState.facts), /tap is running/i); assert.doesNotMatch(result.decision.question, /replace|your .* is/i); });
+test('reasoning flags possible immediate electrical safety risks without diagnosis', async () => { const { request, service } = await setup('The power is not working.'); const result = await service.respond(request.id, 'There are sparks near the power point and a burning smell.'); assert.equal(result.decision.safety_flag, true); assert.equal(result.decision.ready_for_owner, true); assert.match(result.decision.question, /For safety/i); assert.doesNotMatch(result.decision.understanding, /faulty|broken|replace/i); });
