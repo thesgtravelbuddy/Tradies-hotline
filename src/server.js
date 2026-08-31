@@ -106,6 +106,7 @@ async function getCachedApp() {
         reasoningService: new IntakeReasoningService({ repository: requestRepository, knowledgeService, provider }),
         config,
       });
+      
       const ownerTokens = ownerTokenMap();
       return { app, ownerTokens };
     })();
