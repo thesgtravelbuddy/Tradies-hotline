@@ -1,7 +1,7 @@
 import { timingSafeEqual } from 'node:crypto';
 
 export function ownerTokenMap(value = process.env.OWNER_AUTH_TOKENS ?? '{}') {
-  try { const parsed = JSON.parse(value); return parsed && typeof parsed === 'object' && !Array.isArray(parsed) ? parsed : {}; } catch { throw new Error('OWNER_AUTH_TOKENS must be a JSON object mapping token to business ID'); }
+  try { const parsed = JSON.parse(value); return parsed && typeof parsed === 'object' && !Array.isArray(parsed) ? parsed : {}; } catch (error) { console.warn('Error parsing OWNER_AUTH_TOKENS, using empty map:', error.message); return {}; }
 }
 
 function sameSecret(left, right) { const a = Buffer.from(left); const b = Buffer.from(right); return a.length === b.length && timingSafeEqual(a, b); }
