@@ -41,9 +41,6 @@ CREATE TABLE request_messages (
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
-CREATE INDEX requests_business_created_idx ON requests (business_id, created_at DESC);
-CREATE INDEX request_messages_request_created_idx ON request_messages (request_id, created_at);
-
 CREATE TABLE knowledge_documents (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   business_id UUID NOT NULL REFERENCES businesses(id),
@@ -71,5 +68,7 @@ CREATE TABLE knowledge_chunks (
   UNIQUE (document_id, chunk_index)
 );
 
+CREATE INDEX requests_business_created_idx ON requests (business_id, created_at DESC);
+CREATE INDEX request_messages_business_request_created_idx ON request_messages (business_id, request_id, created_at);
 CREATE INDEX knowledge_documents_business_active_idx ON knowledge_documents (business_id, is_active);
 CREATE INDEX knowledge_chunks_business_document_idx ON knowledge_chunks (business_id, document_id);

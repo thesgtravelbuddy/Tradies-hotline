@@ -1,4 +1,4 @@
-import { randomUUID } from 'node:crypto';
+import { createHash, randomBytes, randomUUID } from 'node:crypto';
 
 const contactMethods = new Set(['phone', 'email']);
 
@@ -19,8 +19,11 @@ export function createRequest(input, options = {}) {
   if (!result.valid) throw Object.assign(new Error('Invalid intake'), { errors: result.errors });
   const now = new Date().toISOString();
   const { value } = result;
-  const customer = { id: randomUUID(), name: value.name, phone: value.phone, email: value.email || null, serviceAddress: value.serviceAddress, preferredContactMethod: value.preferredContactMethod, createdAt: now };
-  const request = { id: randomUUID(), customerId: customer.id, status: 'new', initialDescription: value.description, requestState: {}, createdAt: now, updatedAt: now };
+  const businessId = options.businessId ?? input.businessId;
+  if (!businessId) throw new Error('Business ID is required');
+  const customerAccessToken = randomBytes(32).toString('base64url');
+  const customer = { id: randomUUID(), businessId, name: value.name, phone: value.phone, email: value.email || null, serviceAddress: value.serviceAddress, preferredContactMethod: value.preferredContactMethod, createdAt: now };
+  const request = { id: randomUUID(), businessId, customerId: customer.id, customerAccessTokenHash: createHash('sha256').update(customerAccessToken).digest('hex'), status: 'NEW', initialDescription: value.description, requestState: {}, createdAt: now, updatedAt: now };
   const message = { id: randomUUID(), requestId: request.id, sender: 'customer', body: value.description, createdAt: now };
-  return { customer, request, message };
+  return { customer, request, message, customerAccessToken };
 }
