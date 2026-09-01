@@ -1,7 +1,5 @@
-console.log('Vercel bare function loaded.');
+import { createRequestHandler } from '../src/server.js';
 
-export default async function (request, response) {
-  console.log('Vercel bare function invoked.');
-  response.writeHead(200, { 'Content-Type': 'text/plain' });
-  response.end('Hello from bare Vercel function!');
-}
+console.log('Vercel API handler loaded.');
+
+export default createRequestHandler();
