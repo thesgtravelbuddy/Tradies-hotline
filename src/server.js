@@ -31,25 +31,56 @@ function buildDocumentStorage() {
   console.warn('DigitalOcean Spaces credentials are not fully configured; using LocalDocumentStorage. Knowledge uploads will not persist across deploys.');
   return new LocalDocumentStorage('/tmp/knowledge');
 }
-async function repositoriesFromEnvironment() {
-  if (!process.env.DATABASE_URL) {
-    if (process.env.NODE_ENV === 'production') throw new Error('DATABASE_URL is required in production');
-    return { requestRepository: new MemoryRequestRepository(), knowledgeRepository: new MemoryKnowledgeRepository() };
-  }
-  if (!process.env.BUSINESS_ID) throw new Error('BUSINESS_ID is required when DATABASE_URL is set');
+
+// LAZY DATABASE CONNECTION: Do NOT create the Pool at module load time.
+// Instead, create it on first use. This prevents serverless function crashes
+// when the database is temporarily unreachable during cold starts.
+let cachedPool = null;
+async function getDbPool() {
+  if (cachedPool) return cachedPool;
+  
   const { Pool } = await import('pg');
   const { URL } = await import('node:url');
   const dbUrl = new URL(process.env.DATABASE_URL);
-  const pool = new Pool({
+  
+  console.log('[db] Creating PostgreSQL connection pool...');
+  cachedPool = new Pool({
     host: dbUrl.hostname,
     port: parseInt(dbUrl.port, 10),
     database: dbUrl.pathname.replace('/', ''),
     user: dbUrl.username,
     password: dbUrl.password,
     ssl: { rejectUnauthorized: false },
+    // Serverless timeout: allow up to 30s for a connection attempt
+    connectionTimeoutMillis: 30000,
+    // Idle timeout: close idle connections after 10 seconds
+    idleTimeoutMillis: 10000,
+    // Max pool size kept modest for serverless
+    max: 2,
   });
-  return { requestRepository: new PostgresRequestRepository(pool), knowledgeRepository: new PostgresKnowledgeRepository(pool) };
+  
+  console.log('[db] PostgreSQL connection pool created successfully');
+  return cachedPool;
 }
+
+async function repositoriesFromEnvironment() {
+  if (!process.env.DATABASE_URL) {
+    console.log('[db] No DATABASE_URL; using in-memory repositories');
+    if (process.env.NODE_ENV === 'production') throw new Error('DATABASE_URL is required in production');
+    return { requestRepository: new MemoryRequestRepository(), knowledgeRepository: new MemoryKnowledgeRepository() };
+  }
+  if (!process.env.BUSINESS_ID) throw new Error('BUSINESS_ID is required when DATABASE_URL is set');
+  
+  try {
+    const pool = await getDbPool();
+    console.log('[db] Creating repository instances with PostgreSQL pool');
+    return { requestRepository: new PostgresRequestRepository(pool), knowledgeRepository: new PostgresKnowledgeRepository(pool) };
+  } catch (error) {
+    console.error('[db] Failed to initialize database repositories:', error.message);
+    throw error;
+  }
+}
+
 function json(response, status, payload) { response.writeHead(status, { 'content-type': 'application/json' }); response.end(JSON.stringify(payload)); }
 async function body(request) { let raw = ''; for await (const chunk of request) raw += chunk; return JSON.parse(raw || '{}'); }
 async function staticFile(response, pathname) { const file = pathname === '/' ? 'index.html' : pathname === '/owner' ? 'owner.html' : pathname.slice(1); if (file.includes('..')) return false; try { const content = await readFile(join(root, file)); const types = { '.html': 'text/html; charset=utf-8', '.css': 'text/css', '.js': 'application/javascript' }; response.writeHead(200, { 'content-type': types[extname(file)] ?? 'application/octet-stream' }); response.end(content); return true; } catch { return false; } }
@@ -88,12 +119,14 @@ export async function createRequestHandler({ request, response }) {
     }
     if (request.method === 'GET' && await staticFile(response, url.pathname)) return;
     json(response, 404, { error: 'Not found' });
-  } catch (error) { console.error(error); json(response, 500, { error: 'Unable to process request' }); }
+  } catch (error) { console.error('[handler]', error); json(response, 500, { error: 'Unable to process request' }); }
 }
 
 // Cache the app across invocations to avoid reconnecting to Postgres on every serverless request.
+// Database connection is now LAZY: only created when first needed.
 async function getCachedApp() {
   if (!globalThis.__tradiesAppPromise) {
+    console.log('[app] Initializing Tradies app (first request)...');
     globalThis.__tradiesAppPromise = (async () => {
       const { requestRepository, knowledgeRepository } = await repositoriesFromEnvironment();
       const storage = buildDocumentStorage();
@@ -108,6 +141,7 @@ async function getCachedApp() {
       });
       
       const ownerTokens = ownerTokenMap();
+      console.log('[app] Tradies app initialized successfully');
       return { app, ownerTokens };
     })();
   }

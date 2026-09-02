@@ -13,8 +13,8 @@
   },
   "postinstall": "npm install pg @aws-sdk/client-s3",
   "dependencies": {
-    "@aws-sdk/client-s3": "^3.405.0",
+    "@aws-sdk/client-s3": "^3.1123.0",
     "dotenv": "^16.6.1",
-    "pg": "^8.13.1"
+    "pg": "^8.23.0"
   }
 }
