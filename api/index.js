@@ -31,3 +31,5 @@ export default async function vercelHandler(request, response) {
     }
   }
 }
+
+// Force redeploy: 2026-09-03
