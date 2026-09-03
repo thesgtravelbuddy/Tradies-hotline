@@ -20,8 +20,17 @@ const app = express();
 app.use(cors());
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb' }));
-app.use(express.static('public'));
-app.use(express.static('admin'));
+app.use(express.static('.'));
+
+// Serve index.html for root path
+app.get('/', (req, res) => {
+  res.sendFile(join(__dirname, 'index.html'));
+});
+
+// Serve admin.html
+app.get('/admin.html', (req, res) => {
+  res.sendFile(join(__dirname, 'admin.html'));
+});
 
 // Initialize services
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
