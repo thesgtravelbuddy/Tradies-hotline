@@ -1,0 +1,854 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tradies Hotline - Admin Dashboard</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #f5f5f5;
+    }
+
+    .navbar {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 16px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .navbar h1 {
+      font-size: 24px;
+    }
+
+    .navbar button {
+      background: rgba(255, 255, 255, 0.2);
+      color: white;
+      border: 1px solid white;
+      padding: 8px 16px;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .navbar button:hover {
+      background: rgba(255, 255, 255, 0.3);
+    }
+
+    .login-screen {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+
+    .login-box {
+      background: white;
+      padding: 40px;
+      border-radius: 16px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      width: 100%;
+      max-width: 400px;
+    }
+
+    .login-box h2 {
+      margin-bottom: 24px;
+      text-align: center;
+      color: #333;
+    }
+
+    .login-box .form-group {
+      margin-bottom: 16px;
+    }
+
+    .login-box label {
+      display: block;
+      margin-bottom: 6px;
+      font-weight: 600;
+      color: #333;
+    }
+
+    .login-box input {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      font-size: 14px;
+    }
+
+    .login-box input:focus {
+      outline: none;
+      border-color: #667eea;
+      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+
+    .login-box button {
+      width: 100%;
+      padding: 12px;
+      background: #667eea;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      margin-top: 16px;
+      transition: all 0.2s;
+    }
+
+    .login-box button:hover {
+      background: #5568d3;
+    }
+
+    .admin-container {
+      display: none;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+
+    .admin-container.active {
+      display: block;
+    }
+
+    .tabs {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 20px;
+      border-bottom: 2px solid #eee;
+    }
+
+    .tabs button {
+      padding: 12px 16px;
+      background: none;
+      border: none;
+      border-bottom: 3px solid transparent;
+      cursor: pointer;
+      font-size: 15px;
+      font-weight: 600;
+      color: #666;
+      transition: all 0.2s;
+    }
+
+    .tabs button.active {
+      color: #667eea;
+      border-bottom-color: #667eea;
+    }
+
+    .tab-content {
+      display: none;
+      gap: 20px;
+      flex-direction: column;
+    }
+
+    .tab-content.active {
+      display: flex;
+    }
+
+    .card {
+      background: white;
+      border-radius: 8px;
+      padding: 20px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .card h3 {
+      margin-bottom: 16px;
+      color: #333;
+    }
+
+    .form-group {
+      margin-bottom: 16px;
+    }
+
+    .form-group label {
+      display: block;
+      margin-bottom: 6px;
+      font-weight: 600;
+      color: #333;
+      font-size: 14px;
+    }
+
+    .form-group input, .form-group textarea, .form-group select {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      font-size: 14px;
+      font-family: inherit;
+    }
+
+    .form-group input:focus, .form-group textarea:focus, .form-group select:focus {
+      outline: none;
+      border-color: #667eea;
+      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+
+    .btn-submit {
+      background: #667eea;
+      color: white;
+      padding: 12px 20px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: all 0.2s;
+    }
+
+    .btn-submit:hover {
+      background: #5568d3;
+    }
+
+    .table-container {
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    table thead {
+      background: #f5f5f5;
+    }
+
+    table th {
+      padding: 12px;
+      text-align: left;
+      font-weight: 600;
+      color: #333;
+      border-bottom: 2px solid #eee;
+    }
+
+    table td {
+      padding: 12px;
+      border-bottom: 1px solid #eee;
+    }
+
+    table tr:hover {
+      background: #f9f9f9;
+    }
+
+    .status-badge {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 16px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .status-submitted {
+      background: #d4edda;
+      color: #155724;
+    }
+
+    .status-active {
+      background: #d1ecf1;
+      color: #0c5460;
+    }
+
+    .btn-view {
+      background: #667eea;
+      color: white;
+      padding: 6px 12px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 12px;
+    }
+
+    .error {
+      background: #f8d7da;
+      color: #721c24;
+      padding: 12px;
+      border-radius: 6px;
+      margin-bottom: 16px;
+    }
+
+    .success {
+      background: #d4edda;
+      color: #155724;
+      padding: 12px;
+      border-radius: 6px;
+      margin-bottom: 16px;
+    }
+  </style>
+</head>
+<body>
+  <!-- Login Screen -->
+  <div class="login-screen" id="loginScreen">
+    <div class="login-box">
+      <h2>🔐 Admin Login</h2>
+      <div class="form-group">
+        <label>Email</label>
+        <input type="email" id="loginEmail" placeholder="admin@tradies.com">
+      </div>
+      <div class="form-group">
+        <label>Password</label>
+        <input type="password" id="loginPassword" placeholder="••••••••">
+      </div>
+      <div id="loginError" class="error" style="display: none;"></div>
+      <button onclick="login()">Login</button>
+      <div style="text-align: center; margin-top: 16px; font-size: 12px; color: #999;">
+        Demo: admin@tradies.com / password123
+      </div>
+    </div>
+  </div>
+
+  <!-- Admin Dashboard -->
+  <div id="adminDashboard">
+    <div class="navbar">
+      <h1>📊 Tradies Admin Dashboard</h1>
+      <button onclick="logout()">Logout</button>
+    </div>
+
+    <div class="admin-container" id="adminContainer">
+      <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab('submissions')">📋 Submissions</button>
+        <button class="tab-btn" onclick="switchTab('tradsmen')">👷 Tradsmen</button>
+        <button class="tab-btn" onclick="switchTab('knowledge')">📚 Knowledge Base</button>
+        <button class="tab-btn" onclick="switchTab('resources')">🔗 Resources</button>
+      </div>
+
+      <!-- Submissions Tab -->
+      <div class="tab-content active" id="tab-submissions">
+        <div class="card">
+          <h3>Recent Submissions</h3>
+          <div id="submissionsTable" class="table-container">
+            Loading...
+          </div>
+        </div>
+      </div>
+
+      <!-- Tradsmen Tab -->
+      <div class="tab-content" id="tab-tradsmen">
+        <div class="card">
+          <h3>➕ Add New Tradsman</h3>
+          <div id="addTradsmanError"></div>
+          <div class="form-group">
+            <label>Company Name</label>
+            <input type="text" id="companyName" placeholder="ABC Plumbing">
+          </div>
+          <div class="form-group">
+            <label>Email</label>
+            <input type="email" id="tradsmanEmail" placeholder="contact@abcplumbing.com.au">
+          </div>
+          <div class="form-group">
+            <label>Phone</label>
+            <input type="tel" id="tradsmanPhone" placeholder="1300 123 456">
+          </div>
+          <div class="form-group">
+            <label>Service Type</label>
+            <input type="text" id="serviceType" placeholder="Plumbing">
+          </div>
+          <div class="form-group">
+            <label>Logo URL</label>
+            <input type="url" id="logoUrl" placeholder="https://example.com/logo.png">
+          </div>
+          <div class="form-group">
+            <label>Service Areas (comma-separated postcodes)</label>
+            <input type="text" id="serviceAreas" placeholder="2000, 2001, 2002">
+          </div>
+          <div class="form-group">
+            <label>Timezone</label>
+            <select id="timezone">
+              <option value="Australia/Sydney">Australia/Sydney</option>
+              <option value="Australia/Melbourne">Australia/Melbourne</option>
+              <option value="Australia/Brisbane">Australia/Brisbane</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Tier</label>
+            <select id="tier">
+              <option value="standard">Standard (4pm email)</option>
+              <option value="premium">Premium (instant email)</option>
+            </select>
+          </div>
+          <button class="btn-submit" onclick="addTradsman()">Add Tradsman</button>
+        </div>
+
+        <div class="card">
+          <h3>Tradsmen List</h3>
+          <div id="tradmenList" class="table-container">
+            Loading...
+          </div>
+        </div>
+      </div>
+
+      <!-- Knowledge Base Tab -->
+      <div class="tab-content" id="tab-knowledge">
+        <div class="card">
+          <h3>➕ Add Knowledge Base Entry</h3>
+          <div id="addKBError"></div>
+          <div class="form-group">
+            <label>Issue Name</label>
+            <input type="text" id="issueName" placeholder="Leaking Tap">
+          </div>
+          <div class="form-group">
+            <label>Symptoms</label>
+            <textarea id="symptoms" placeholder="Water dripping, puddles under sink" rows="3"></textarea>
+          </div>
+          <div class="form-group">
+            <label>Common Causes</label>
+            <textarea id="causes" placeholder="Worn washers, damaged seals" rows="3"></textarea>
+          </div>
+          <div class="form-group">
+            <label>Emergency Indicators</label>
+            <textarea id="emergencyIndicators" placeholder="Water pooling, mold growth" rows="3"></textarea>
+          </div>
+          <div class="form-group">
+            <label>Suggested AI Questions</label>
+            <textarea id="suggestedQuestions" placeholder="How long has it been dripping?" rows="3"></textarea>
+          </div>
+          <button class="btn-submit" onclick="addKBEntry()">Add Entry</button>
+        </div>
+
+        <div class="card">
+          <h3>Knowledge Base Entries</h3>
+          <div id="kbList" class="table-container">
+            Loading...
+          </div>
+        </div>
+      </div>
+
+      <!-- Resources Tab -->
+      <div class="tab-content" id="tab-resources">
+        <div class="card">
+          <h3>➕ Add Resource</h3>
+          <div id="addResourceError"></div>
+          <div class="form-group">
+            <label>Knowledge Base Entry</label>
+            <select id="resourceKBId">
+              <option value="">Select an issue...</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Title</label>
+            <input type="text" id="resourceTitle" placeholder="DIY Guide: Fixing a Leaky Tap">
+          </div>
+          <div class="form-group">
+            <label>URL</label>
+            <input type="url" id="resourceUrl" placeholder="https://example.com/guide">
+          </div>
+          <div class="form-group">
+            <label>Resource Type</label>
+            <select id="resourceType">
+              <option value="diy-guide">DIY Guide</option>
+              <option value="video">Video</option>
+              <option value="directory">Directory</option>
+              <option value="tool-rental">Tool Rental</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Difficulty Level</label>
+            <select id="difficultyLevel">
+              <option value="easy">Easy</option>
+              <option value="medium">Medium</option>
+              <option value="hard">Hard</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Estimated Cost</label>
+            <input type="text" id="estimatedCost" placeholder="$10-20">
+          </div>
+          <div class="form-group">
+            <label>Relevance Score (1-10)</label>
+            <input type="number" id="relevanceScore" min="1" max="10" value="8">
+          </div>
+          <button class="btn-submit" onclick="addResource()">Add Resource</button>
+        </div>
+
+        <div class="card">
+          <h3>Resources List</h3>
+          <div id="resourcesList" class="table-container">
+            Loading...
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let token = localStorage.getItem('adminToken');
+
+    // Check if logged in
+    if (token) {
+      document.getElementById('loginScreen').style.display = 'none';
+      document.getElementById('adminDashboard').style.display = 'block';
+      document.getElementById('adminContainer').classList.add('active');
+      loadSubmissions();
+    } else {
+      document.getElementById('loginScreen').style.display = 'flex';
+      document.getElementById('adminDashboard').style.display = 'none';
+    }
+
+    async function login() {
+      const email = document.getElementById('loginEmail').value.trim();
+      const password = document.getElementById('loginPassword').value.trim();
+
+      if (!email || !password) {
+        showLoginError('Please fill in all fields');
+        return;
+      }
+
+      try {
+        const response = await fetch('/api/v1/admin/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password })
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          showLoginError(data.error || 'Login failed');
+          return;
+        }
+
+        localStorage.setItem('adminToken', data.token);
+        token = data.token;
+
+        document.getElementById('loginScreen').style.display = 'none';
+        document.getElementById('adminDashboard').style.display = 'block';
+        document.getElementById('adminContainer').classList.add('active');
+
+        loadSubmissions();
+      } catch (error) {
+        showLoginError('Connection error');
+      }
+    }
+
+    function showLoginError(message) {
+      const errorDiv = document.getElementById('loginError');
+      errorDiv.textContent = message;
+      errorDiv.style.display = 'block';
+    }
+
+    function logout() {
+      localStorage.removeItem('adminToken');
+      token = null;
+      document.getElementById('loginScreen').style.display = 'flex';
+      document.getElementById('adminDashboard').style.display = 'none';
+      document.getElementById('loginEmail').value = '';
+      document.getElementById('loginPassword').value = '';
+    }
+
+    function switchTab(tabName) {
+      // Hide all tabs
+      document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+      document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+
+      // Show selected tab
+      document.getElementById(`tab-${tabName}`).classList.add('active');
+      event.target.classList.add('active');
+
+      // Load data
+      if (tabName === 'submissions') loadSubmissions();
+      if (tabName === 'tradsmen') loadTradsmen();
+      if (tabName === 'knowledge') loadKB();
+      if (tabName === 'resources') loadResources();
+    }
+
+    async function loadSubmissions() {
+      try {
+        const response = await fetch('/api/v1/admin/submissions', {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const submissions = await response.json();
+
+        const html = `
+          <table>
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Phone</th>
+                <th>Email</th>
+                <th>Postcode</th>
+                <th>Status</th>
+                <th>Tradsman</th>
+                <th>Date</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${submissions.map(s => `
+                <tr>
+                  <td>#${s.id}</td>
+                  <td>${s.phone || '-'}</td>
+                  <td>${s.phone || '-'}</td>
+                  <td>${s.email || '-'}</td>
+                  <td>${s.postcode || '-'}</td>
+                  <td><span class="status-badge status-${s.status}">${s.status}</span></td>
+                  <td>${s.company_name || '-'}</td>
+                  <td>${new Date(s.created_at).toLocaleDateString()}</td>
+                  <td><button class="btn-view" onclick="viewSubmission(${s.id})">View</button></td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        `;
+
+        document.getElementById('submissionsTable').innerHTML = html;
+      } catch (error) {
+        console.error('Error loading submissions:', error);
+        document.getElementById('submissionsTable').innerHTML = '<div class="error">Failed to load submissions</div>';
+      }
+    }
+
+    async function loadTradsmen() {
+      try {
+        const response = await fetch('/api/v1/admin/tradsmen', {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const tradsmen = await response.json();
+
+        const html = `
+          <table>
+            <thead>
+              <tr>
+                <th>Company Name</th>
+                <th>Email</th>
+                <th>Phone</th>
+                <th>Service Type</th>
+                <th>Tier</th>
+                <th>Date Added</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${tradsmen.map(t => `
+                <tr>
+                  <td>${t.company_name}</td>
+                  <td>${t.email}</td>
+                  <td>${t.phone || '-'}</td>
+                  <td>${t.service_type || '-'}</td>
+                  <td><span class="status-badge">${t.tier}</span></td>
+                  <td>${new Date(t.created_at).toLocaleDateString()}</td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        `;
+
+        document.getElementById('tradmenList').innerHTML = html;
+      } catch (error) {
+        console.error('Error loading tradsmen:', error);
+        document.getElementById('tradmenList').innerHTML = '<div class="error">Failed to load tradsmen</div>';
+      }
+    }
+
+    async function addTradsman() {
+      const companyName = document.getElementById('companyName').value.trim();
+      const email = document.getElementById('tradsmanEmail').value.trim();
+      const phone = document.getElementById('tradsmanPhone').value.trim();
+      const serviceType = document.getElementById('serviceType').value.trim();
+      const logoUrl = document.getElementById('logoUrl').value.trim();
+      const serviceAreas = document.getElementById('serviceAreas').value.trim().split(',').map(s => s.trim());
+      const timezone = document.getElementById('timezone').value;
+      const tier = document.getElementById('tier').value;
+
+      if (!companyName || !email) {
+        alert('Please fill in company name and email');
+        return;
+      }
+
+      try {
+        const response = await fetch('/api/v1/admin/tradsmen', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify({
+            companyName, email, phone, serviceType, logoUrl, serviceAreas, timezone, tier
+          })
+        });
+
+        if (response.ok) {
+          alert('Tradsman added successfully!');
+          document.getElementById('companyName').value = '';
+          document.getElementById('tradsmanEmail').value = '';
+          document.getElementById('tradsmanPhone').value = '';
+          document.getElementById('serviceType').value = '';
+          document.getElementById('logoUrl').value = '';
+          document.getElementById('serviceAreas').value = '';
+          loadTradsmen();
+        } else {
+          alert('Failed to add tradsman');
+        }
+      } catch (error) {
+        console.error('Error adding tradsman:', error);
+        alert('Error: ' + error.message);
+      }
+    }
+
+    async function loadKB() {
+      try {
+        const response = await fetch('/api/v1/admin/knowledge-base', {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const entries = await response.json();
+
+        const html = `
+          <table>
+            <thead>
+              <tr>
+                <th>Issue Name</th>
+                <th>Symptoms</th>
+                <th>Causes</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${entries.map(e => `
+                <tr>
+                  <td>${e.issue_name}</td>
+                  <td>${e.symptoms.substring(0, 50)}...</td>
+                  <td>${e.causes.substring(0, 50)}...</td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        `;
+
+        document.getElementById('kbList').innerHTML = html;
+      } catch (error) {
+        document.getElementById('kbList').innerHTML = '<div class="error">Failed to load KB</div>';
+      }
+    }
+
+    async function addKBEntry() {
+      const issueName = document.getElementById('issueName').value.trim();
+      const symptoms = document.getElementById('symptoms').value.trim();
+      const causes = document.getElementById('causes').value.trim();
+      const emergencyIndicators = document.getElementById('emergencyIndicators').value.trim();
+      const suggestedQuestions = document.getElementById('suggestedQuestions').value.trim();
+
+      if (!issueName || !symptoms || !causes) {
+        alert('Please fill in all required fields');
+        return;
+      }
+
+      try {
+        const response = await fetch('/api/v1/admin/knowledge-base', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify({
+            issueName, symptoms, causes, emergencyIndicators, suggestedQuestions
+          })
+        });
+
+        if (response.ok) {
+          alert('KB entry added!');
+          document.getElementById('issueName').value = '';
+          document.getElementById('symptoms').value = '';
+          document.getElementById('causes').value = '';
+          document.getElementById('emergencyIndicators').value = '';
+          document.getElementById('suggestedQuestions').value = '';
+          loadKB();
+        }
+      } catch (error) {
+        alert('Error: ' + error.message);
+      }
+    }
+
+    async function loadResources() {
+      try {
+        const [resourcesRes, kbRes] = await Promise.all([
+          fetch('/api/v1/admin/resources', { headers: { 'Authorization': `Bearer ${token}` } }),
+          fetch('/api/v1/admin/knowledge-base', { headers: { 'Authorization': `Bearer ${token}` } })
+        ]);
+
+        const resources = await resourcesRes.json();
+        const kb = await kbRes.json();
+
+        // Populate KB dropdown
+        const selectHtml = kb.map(k => `<option value="${k.id}">${k.issue_name}</option>`).join('');
+        document.getElementById('resourceKBId').innerHTML = '<option value="">Select an issue...</option>' + selectHtml;
+
+        // Show resources
+        const html = `
+          <table>
+            <thead>
+              <tr>
+                <th>Title</th>
+                <th>Type</th>
+                <th>Difficulty</th>
+                <th>Relevance</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${resources.map(r => `
+                <tr>
+                  <td><a href="${r.url}" target="_blank">${r.title}</a></td>
+                  <td>${r.resource_type}</td>
+                  <td>${r.difficulty_level}</td>
+                  <td>${r.relevance_score}/10</td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        `;
+
+        document.getElementById('resourcesList').innerHTML = html;
+      } catch (error) {
+        console.error('Error loading resources:', error);
+      }
+    }
+
+    async function addResource() {
+      const kbId = document.getElementById('resourceKBId').value;
+      const title = document.getElementById('resourceTitle').value.trim();
+      const url = document.getElementById('resourceUrl').value.trim();
+      const resourceType = document.getElementById('resourceType').value;
+      const difficultyLevel = document.getElementById('difficultyLevel').value;
+      const estimatedCost = document.getElementById('estimatedCost').value.trim();
+      const relevanceScore = parseInt(document.getElementById('relevanceScore').value);
+
+      if (!kbId || !title || !url) {
+        alert('Please fill in all required fields');
+        return;
+      }
+
+      try {
+        const response = await fetch('/api/v1/admin/resources', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify({
+            kbId: parseInt(kbId), title, url, resourceType, difficultyLevel, estimatedCost, relevanceScore
+          })
+        });
+
+        if (response.ok) {
+          alert('Resource added!');
+          document.getElementById('resourceTitle').value = '';
+          document.getElementById('resourceUrl').value = '';
+          document.getElementById('relevanceScore').value = '8';
+          loadResources();
+        }
+      } catch (error) {
+        alert('Error: ' + error.message);
+      }
+    }
+
+    function viewSubmission(id) {
+      alert(`View submission #${id} - Coming soon!`);
+    }
+  </script>
+</body>
+</html>
