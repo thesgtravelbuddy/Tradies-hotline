@@ -626,15 +626,12 @@
         });
 
         if (!response.ok) {
-          // The server sends a friendly message for 503 (AI service busy);
-          // prefer it over the generic fallback text.
+          // The backend returns a plain { error, details } body on failure.
           let serverMessage = '';
           try {
             serverMessage = (await response.json()).error || '';
           } catch (_) { /* non-JSON error body */ }
-          const failure = new Error(serverMessage || 'Chat failed');
-          failure.userFacing = response.status === 503 && Boolean(serverMessage);
-          throw failure;
+          throw new Error(serverMessage || 'Chat failed');
         }
 
         const data = await response.json();
@@ -647,9 +644,7 @@
         }
       } catch (error) {
         console.error('Chat error:', error);
-        displayMessage('assistant', error.userFacing
-          ? `⏳ ${error.message}`
-          : '❌ Sorry, I had trouble processing that. Please try again.');
+        displayMessage('assistant', '❌ Sorry, I had trouble processing that. Please try again.');
       }
     }
 

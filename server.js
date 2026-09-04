@@ -35,168 +35,22 @@ app.get('/admin.html', (req, res) => {
 // Initialize services
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
 
-// --- Gemini model resolution ---------------------------------------------
-// The Generative Language API retires model aliases over time, and the model
-// catalogue differs between the `v1` and `v1beta` surfaces. Rather than
-// hard-coding a name that silently 404s later, resolve a supported model once
-// at runtime from the live ListModels catalogue and cache it.
-const GEMINI_API_VERSION = 'v1beta';
+// --- Gemini configuration -------------------------------------------------
+// Same proven setup as the Cendol homepage backend: one pinned model, one
+// direct generateContent call, no runtime model discovery and no retry ladder.
+const GEMINI_MODEL = 'gemini-2.5-flash';
 
-// Ordered by preference: newest/cheapest first, older fallbacks last.
-const GEMINI_MODEL_PREFERENCES = [
-  'gemini-2.5-flash',
-  'gemini-flash-latest',
-  'gemini-2.0-flash',
-  'gemini-2.0-flash-001',
-  'gemini-1.5-flash-latest',
-  'gemini-1.5-flash'
-];
+// DigitalOcean's gateway kills a request at 30s. Cap our own call at 25s so we
+// return a real JSON error instead of the platform's opaque 504.
+const GEMINI_TIMEOUT_MS = 25000;
 
-let cachedModelName = null;
-let cachedModelPromise = null;
-// Preference-ordered list of models this key can actually serve, cached from the
-// same ListModels call that resolves the primary. Used to pick fallbacks.
-let cachedAvailableModels = null;
-
-async function listAvailableGeminiModels() {
-  if (!process.env.GEMINI_API_KEY) throw new Error('GEMINI_API_KEY is not set');
-
-  const url = `https://generativelanguage.googleapis.com/${GEMINI_API_VERSION}/models?key=${process.env.GEMINI_API_KEY}&pageSize=200`;
-  const response = await fetch(url);
-
-  if (!response.ok) {
-    const body = await response.text();
-    throw new Error(`ListModels failed (${response.status}): ${body.slice(0, 400)}`);
-  }
-
-  const data = await response.json();
-  return (data.models || [])
-    // Only models that can actually serve generateContent are usable here.
-    .filter(m => (m.supportedGenerationMethods || []).includes('generateContent'))
-    .map(m => m.name.replace(/^models\//, ''));
-}
-
-async function resolveGeminiModel() {
-  if (cachedModelName) return cachedModelName;
-  if (cachedModelPromise) return cachedModelPromise;
-
-  cachedModelPromise = (async () => {
-    const available = await listAvailableGeminiModels();
-    cachedAvailableModels = available;
-
-    const chosen =
-      GEMINI_MODEL_PREFERENCES.find(name => available.includes(name)) ||
-      // Nothing from the preference list: fall back to any flash model, then
-      // any model at all, so the endpoint degrades rather than dying.
-      available.find(name => name.includes('flash')) ||
-      available[0];
-
-    if (!chosen) throw new Error('No Gemini model supporting generateContent is available for this API key');
-
-    console.log(`✓ Gemini model resolved: ${chosen} (api ${GEMINI_API_VERSION})`);
-    cachedModelName = chosen;
-    return chosen;
-  })();
-
-  try {
-    return await cachedModelPromise;
-  } catch (error) {
-    // Allow a later request to retry instead of caching the failure forever.
-    cachedModelPromise = null;
-    throw error;
-  }
-}
-
-// --- Gemini call resilience -----------------------------------------------
-// The flash models routinely return "503 Service Unavailable - high demand"
-// under load; observed failure rate was 6 of 8 calls. A 503 is transient, so
-// retry with exponential backoff and, once a model has exhausted its attempts,
-// move on to the next available model rather than failing the request.
-const GEMINI_MAX_ATTEMPTS_PER_MODEL = 3;
-const GEMINI_RETRY_DELAYS_MS = [500, 1000, 2000];
-// Primary + one fallback. Kept deliberately small so the worst case stays well
-// inside the serverless function timeout.
-const GEMINI_MAX_MODELS_TRIED = 2;
-// Hard ceiling on the whole retry sequence; once passed we stop retrying and
-// report 503 rather than letting the platform kill the function mid-flight.
-const GEMINI_TOTAL_BUDGET_MS = 20000;
-
-const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
-
-// Pull an HTTP status out of the SDK error, which reports it only inside the
-// message text (e.g. "[503 Service Unavailable] ...") on most failures.
-function geminiErrorStatus(error) {
-  if (typeof error?.status === 'number') return error.status;
-  const match = /\[(\d{3})\s/.exec(error?.message || '');
-  return match ? Number(match[1]) : null;
-}
-
-// 503 (capacity) and 429 (rate limit) are transient and worth retrying.
-// 400/401/403/404 are caller or configuration faults - fail immediately so a
-// bad request is not turned into a multi-second stall.
-function isRetryableGeminiError(error) {
-  const status = geminiErrorStatus(error);
-  if (status === 503 || status === 429) return true;
-  if (status !== null) return false;
-  const message = error?.message || '';
-  return /Service Unavailable|high demand|overloaded|UNAVAILABLE|RESOURCE_EXHAUSTED/i.test(message);
-}
-
-// Ordered candidates: the resolved primary first, then other available models
-// from the preference list. Falls back to the static preference list if the
-// ListModels catalogue was never cached.
-function geminiModelCandidates(primary) {
-  const available = cachedAvailableModels;
-  const preferred = available
-    ? GEMINI_MODEL_PREFERENCES.filter(name => available.includes(name))
-    : GEMINI_MODEL_PREFERENCES;
-  return [primary, ...preferred.filter(name => name !== primary)].slice(0, GEMINI_MAX_MODELS_TRIED);
-}
-
-// Runs `invoke(modelName)` against each candidate model, retrying transient
-// failures with exponential backoff. Throws the last error if everything fails.
-async function callGeminiWithRetry(primaryModel, invoke) {
-  const candidates = geminiModelCandidates(primaryModel);
-  const deadline = Date.now() + GEMINI_TOTAL_BUDGET_MS;
-  let retryIndex = 0;
-  let lastError;
-
-  for (const modelName of candidates) {
-    for (let attempt = 1; attempt <= GEMINI_MAX_ATTEMPTS_PER_MODEL; attempt++) {
-      try {
-        const result = await invoke(modelName);
-        if (modelName !== primaryModel) {
-          console.warn(`✓ Gemini succeeded on fallback model ${modelName} (primary ${primaryModel} unavailable)`);
-        }
-        return { result, modelName };
-      } catch (error) {
-        lastError = error;
-
-        if (!isRetryableGeminiError(error)) throw error;
-
-        const isLastAttemptForModel = attempt === GEMINI_MAX_ATTEMPTS_PER_MODEL;
-        const isLastCandidate = modelName === candidates[candidates.length - 1];
-        if (isLastAttemptForModel && isLastCandidate) break;
-
-        const delay = GEMINI_RETRY_DELAYS_MS[Math.min(retryIndex, GEMINI_RETRY_DELAYS_MS.length - 1)];
-        retryIndex++;
-
-        // Out of time - stop rather than risk the function being killed.
-        if (Date.now() + delay > deadline) {
-          console.warn('Gemini retry budget exhausted; giving up');
-          throw lastError;
-        }
-
-        console.warn(
-          `Gemini ${geminiErrorStatus(error) ?? 'transient'} on ${modelName} ` +
-          `(attempt ${attempt}/${GEMINI_MAX_ATTEMPTS_PER_MODEL}); retrying in ${delay}ms`
-        );
-        await sleep(delay);
-      }
-    }
-  }
-
-  throw lastError;
+// Rejects after `ms` unless the wrapped promise settles first.
+function withTimeout(promise, ms, label = 'Gemini request') {
+  let timer;
+  const timeout = new Promise((_, reject) => {
+    timer = setTimeout(() => reject(new Error(`${label} timed out after ${ms}ms`)), ms);
+  });
+  return Promise.race([promise, timeout]).finally(() => clearTimeout(timer));
 }
 
 const pool = new pg.Pool({
@@ -457,52 +311,52 @@ app.post('/api/v1/chat', async (req, res) => {
       return res.status(500).json({ error: 'Gemini API key not configured' });
     }
 
-    // Validate shape up front: a malformed body is a client error (400), not a 500.
     if (!Array.isArray(messages) || messages.length === 0) {
       return res.status(400).json({ error: 'messages must be a non-empty array' });
     }
-    if (messages.some(m => !m || typeof m.content !== 'string' || !m.content.trim())) {
-      return res.status(400).json({ error: 'each message requires a non-empty string content' });
-    }
-    if (messages[messages.length - 1].role !== 'user') {
+
+    // Build the history: keep only well-formed turns, then drop any leading
+    // assistant turns so the first turn is a user turn (Gemini requires it).
+    const clean = messages.filter(
+      m => m && (m.role === 'user' || m.role === 'assistant') &&
+           typeof m.content === 'string' && m.content.trim()
+    );
+    const firstUser = clean.findIndex(m => m.role === 'user');
+    const history = firstUser === -1 ? [] : clean.slice(firstUser);
+
+    if (history.length === 0 || history[history.length - 1].role !== 'user') {
       return res.status(400).json({ error: 'the last message must have role "user"' });
     }
 
     // Log user message
-    if (submissionId && messages.length > 0) {
-      const lastMsg = messages[messages.length - 1];
-      if (lastMsg.role === 'user') {
-        await pool.query(
-          'INSERT INTO message_logs (submission_id, role, content) VALUES ($1, $2, $3)',
-          [submissionId, 'user', lastMsg.content]
-        );
-      }
+    if (submissionId) {
+      await pool.query(
+        'INSERT INTO message_logs (submission_id, role, content) VALUES ($1, $2, $3)',
+        [submissionId, 'user', history[history.length - 1].content]
+      );
     }
 
     // Get AI prompt with knowledge base
     const systemPrompt = await buildAIPrompt();
 
-    // Prepare messages for Gemini
-    const geminiMessages = messages.map(msg => ({
+    const contents = history.map(msg => ({
       role: msg.role === 'user' ? 'user' : 'model',
-      parts: [{ text: msg.content }]
+      parts: [{ text: msg.content.trim() }]
     }));
 
-    // Call Gemini API, retrying transient 503/429 failures and falling back to
-    // the next available model if the primary stays unavailable.
-    const primaryModel = await resolveGeminiModel();
-    const userMessage = geminiMessages[geminiMessages.length - 1].parts[0].text;
-
-    const { result } = await callGeminiWithRetry(primaryModel, async (modelName) => {
-      const model = genAI.getGenerativeModel(
-        { model: modelName, systemInstruction: systemPrompt },
-        { apiVersion: GEMINI_API_VERSION }
-      );
-      const chat = model.startChat({
-        history: geminiMessages.slice(0, -1)
-      });
-      return chat.sendMessage(userMessage);
+    // Cendol pattern: build the model with the system instruction, make one
+    // direct generateContent call, read response.text() - raced against a 25s
+    // timeout so we never hit the platform's 30s gateway cutoff.
+    const model = genAI.getGenerativeModel({
+      model: GEMINI_MODEL,
+      systemInstruction: systemPrompt
     });
+
+    const result = await withTimeout(
+      model.generateContent({ contents }),
+      GEMINI_TIMEOUT_MS,
+      'Gemini chat request'
+    );
 
     const assistantMessage = result.response.text();
 
@@ -521,35 +375,10 @@ app.post('/api/v1/chat', async (req, res) => {
     });
   } catch (error) {
     console.error('Chat error:', error.message || error);
-    console.error('Error details:', error);
-
-    // Provide more specific error messages for debugging
-    // A model that vanished mid-process should not be cached; force re-resolution.
-    if (error.message?.includes('404') || error.message?.includes('not found')) {
-      cachedModelName = null;
-      cachedModelPromise = null;
-    }
-
-    let errorMessage = 'Failed to process chat';
-    let statusCode = 500;
-
-    // All retries and fallback models exhausted while Gemini was overloaded.
-    // Surface it as 503 with Retry-After so callers can back off correctly.
-    if (isRetryableGeminiError(error)) {
-      statusCode = 503;
-      errorMessage = 'The AI service is temporarily busy. Please try again in a moment.';
-      res.set('Retry-After', '5');
-    } else if (error.message?.includes('MODEL_NOT_FOUND') || error.message?.includes('404')) {
-      errorMessage = 'Gemini model not available for this API key/version.';
-    } else if (error.message?.includes('API_KEY_INVALID') || error.message?.includes('API key not valid')) {
-      errorMessage = 'Gemini API key is invalid.';
-    } else if (error.message?.includes('PERMISSION_DENIED')) {
-      errorMessage = 'Gemini API key invalid or expired.';
-    } else if (error.message?.includes('RESOURCE_EXHAUSTED')) {
-      errorMessage = 'Gemini API rate limit exceeded.';
-    }
-
-    res.status(statusCode).json({ error: errorMessage, details: error.message });
+    res.status(500).json({
+      error: 'Failed to process chat',
+      details: error.message
+    });
   }
 });
 
@@ -945,22 +774,25 @@ app.get('/api/v1/health/gemini', async (req, res) => {
   }
 
   try {
-    const available = await listAvailableGeminiModels();
-    const selected = await resolveGeminiModel();
+    // Cheapest possible real call against the pinned model: proves the key works
+    // and the model is reachable, without any catalogue lookup.
+    const model = genAI.getGenerativeModel({ model: GEMINI_MODEL });
+    const result = await withTimeout(
+      model.generateContent('ping'),
+      GEMINI_TIMEOUT_MS,
+      'Gemini health check'
+    );
 
     res.json({
       ok: true,
-      apiVersion: GEMINI_API_VERSION,
+      model: GEMINI_MODEL,
       keyValid: true,
-      selectedModel: selected,
-      availableModelCount: available.length,
-      // Trimmed so the response stays readable; full list is rarely needed.
-      sampleModels: available.slice(0, 25)
+      sample: result.response.text().slice(0, 80)
     });
   } catch (error) {
     res.status(503).json({
       ok: false,
-      apiVersion: GEMINI_API_VERSION,
+      model: GEMINI_MODEL,
       keyValid: !/API_KEY_INVALID|API key not valid|401|403/.test(error.message || ''),
       reason: error.message
     });
