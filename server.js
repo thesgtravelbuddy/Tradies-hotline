@@ -35,6 +35,74 @@ app.get('/admin.html', (req, res) => {
 // Initialize services
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
 
+// --- Gemini model resolution ---------------------------------------------
+// The Generative Language API retires model aliases over time, and the model
+// catalogue differs between the `v1` and `v1beta` surfaces. Rather than
+// hard-coding a name that silently 404s later, resolve a supported model once
+// at runtime from the live ListModels catalogue and cache it.
+const GEMINI_API_VERSION = 'v1beta';
+
+// Ordered by preference: newest/cheapest first, older fallbacks last.
+const GEMINI_MODEL_PREFERENCES = [
+  'gemini-2.5-flash',
+  'gemini-flash-latest',
+  'gemini-2.0-flash',
+  'gemini-2.0-flash-001',
+  'gemini-1.5-flash-latest',
+  'gemini-1.5-flash'
+];
+
+let cachedModelName = null;
+let cachedModelPromise = null;
+
+async function listAvailableGeminiModels() {
+  if (!process.env.GEMINI_API_KEY) throw new Error('GEMINI_API_KEY is not set');
+
+  const url = `https://generativelanguage.googleapis.com/${GEMINI_API_VERSION}/models?key=${process.env.GEMINI_API_KEY}&pageSize=200`;
+  const response = await fetch(url);
+
+  if (!response.ok) {
+    const body = await response.text();
+    throw new Error(`ListModels failed (${response.status}): ${body.slice(0, 400)}`);
+  }
+
+  const data = await response.json();
+  return (data.models || [])
+    // Only models that can actually serve generateContent are usable here.
+    .filter(m => (m.supportedGenerationMethods || []).includes('generateContent'))
+    .map(m => m.name.replace(/^models\//, ''));
+}
+
+async function resolveGeminiModel() {
+  if (cachedModelName) return cachedModelName;
+  if (cachedModelPromise) return cachedModelPromise;
+
+  cachedModelPromise = (async () => {
+    const available = await listAvailableGeminiModels();
+
+    const chosen =
+      GEMINI_MODEL_PREFERENCES.find(name => available.includes(name)) ||
+      // Nothing from the preference list: fall back to any flash model, then
+      // any model at all, so the endpoint degrades rather than dying.
+      available.find(name => name.includes('flash')) ||
+      available[0];
+
+    if (!chosen) throw new Error('No Gemini model supporting generateContent is available for this API key');
+
+    console.log(`✓ Gemini model resolved: ${chosen} (api ${GEMINI_API_VERSION})`);
+    cachedModelName = chosen;
+    return chosen;
+  })();
+
+  try {
+    return await cachedModelPromise;
+  } catch (error) {
+    // Allow a later request to retry instead of caching the failure forever.
+    cachedModelPromise = null;
+    throw error;
+  }
+}
+
 const pool = new pg.Pool({
   connectionString: process.env.DATABASE_URL,
   ssl: { rejectUnauthorized: false }
@@ -231,6 +299,24 @@ async function seedKnowledgeBase() {
   }
 }
 
+// Seed default admin user if none exist
+async function seedAdminUser() {
+  try {
+    const result = await pool.query('SELECT COUNT(*) FROM admin_users');
+    if (result.rows[0].count === '0') {
+      const passwordHash = await bcrypt.hash('password123', 10);
+      await pool.query(
+        `INSERT INTO admin_users (email, password_hash, role, active)
+         VALUES ($1, $2, $3, $4)`,
+        ['admin@tradies.com', passwordHash, 'admin', true]
+      );
+      console.log('✓ Admin user seeded');
+    }
+  } catch (error) {
+    console.error('Admin user seeding error:', error.message);
+  }
+}
+
 // Middleware: Verify JWT token
 function verifyToken(req, res, next) {
   const token = req.headers.authorization?.split(' ')[1];
@@ -275,6 +361,17 @@ app.post('/api/v1/chat', async (req, res) => {
       return res.status(500).json({ error: 'Gemini API key not configured' });
     }
 
+    // Validate shape up front: a malformed body is a client error (400), not a 500.
+    if (!Array.isArray(messages) || messages.length === 0) {
+      return res.status(400).json({ error: 'messages must be a non-empty array' });
+    }
+    if (messages.some(m => !m || typeof m.content !== 'string' || !m.content.trim())) {
+      return res.status(400).json({ error: 'each message requires a non-empty string content' });
+    }
+    if (messages[messages.length - 1].role !== 'user') {
+      return res.status(400).json({ error: 'the last message must have role "user"' });
+    }
+
     // Log user message
     if (submissionId && messages.length > 0) {
       const lastMsg = messages[messages.length - 1];
@@ -296,10 +393,13 @@ app.post('/api/v1/chat', async (req, res) => {
     }));
 
     // Call Gemini API
-    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+    const modelName = await resolveGeminiModel();
+    const model = genAI.getGenerativeModel(
+      { model: modelName, systemInstruction: systemPrompt },
+      { apiVersion: GEMINI_API_VERSION }
+    );
     const chat = model.startChat({
-      history: geminiMessages.slice(0, -1),
-      systemInstruction: systemPrompt
+      history: geminiMessages.slice(0, -1)
     });
 
     const userMessage = geminiMessages[geminiMessages.length - 1].parts[0].text;
@@ -320,8 +420,28 @@ app.post('/api/v1/chat', async (req, res) => {
       timestamp: new Date().toISOString()
     });
   } catch (error) {
-    console.error('Chat error:', error);
-    res.status(500).json({ error: 'Failed to process chat' });
+    console.error('Chat error:', error.message || error);
+    console.error('Error details:', error);
+
+    // Provide more specific error messages for debugging
+    // A model that vanished mid-process should not be cached; force re-resolution.
+    if (error.message?.includes('404') || error.message?.includes('not found')) {
+      cachedModelName = null;
+      cachedModelPromise = null;
+    }
+
+    let errorMessage = 'Failed to process chat';
+    if (error.message?.includes('MODEL_NOT_FOUND') || error.message?.includes('404')) {
+      errorMessage = 'Gemini model not available for this API key/version.';
+    } else if (error.message?.includes('API_KEY_INVALID') || error.message?.includes('API key not valid')) {
+      errorMessage = 'Gemini API key is invalid.';
+    } else if (error.message?.includes('PERMISSION_DENIED')) {
+      errorMessage = 'Gemini API key invalid or expired.';
+    } else if (error.message?.includes('RESOURCE_EXHAUSTED')) {
+      errorMessage = 'Gemini API rate limit exceeded.';
+    }
+
+    res.status(500).json({ error: errorMessage, details: error.message });
   }
 });
 
@@ -708,10 +828,42 @@ app.get('/api/v1/health', (req, res) => {
   });
 });
 
+// Deep health check: actually exercises the Gemini credential instead of only
+// asserting the env var is non-empty. Use this to tell "key missing" from
+// "key invalid" from "model unavailable".
+app.get('/api/v1/health/gemini', async (req, res) => {
+  if (!process.env.GEMINI_API_KEY) {
+    return res.status(503).json({ ok: false, reason: 'GEMINI_API_KEY not set' });
+  }
+
+  try {
+    const available = await listAvailableGeminiModels();
+    const selected = await resolveGeminiModel();
+
+    res.json({
+      ok: true,
+      apiVersion: GEMINI_API_VERSION,
+      keyValid: true,
+      selectedModel: selected,
+      availableModelCount: available.length,
+      // Trimmed so the response stays readable; full list is rarely needed.
+      sampleModels: available.slice(0, 25)
+    });
+  } catch (error) {
+    res.status(503).json({
+      ok: false,
+      apiVersion: GEMINI_API_VERSION,
+      keyValid: !/API_KEY_INVALID|API key not valid|401|403/.test(error.message || ''),
+      reason: error.message
+    });
+  }
+});
+
 // Initialize and start
 async function startup() {
   await initializeDatabase();
   await seedKnowledgeBase();
+  await seedAdminUser();
 
   const PORT = process.env.PORT || 3000;
   app.listen(PORT, () => {
