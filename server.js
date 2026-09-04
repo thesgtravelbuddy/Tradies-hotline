@@ -3,7 +3,7 @@ import cors from 'cors';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import pg from 'pg';
-import { GoogleGenerativeAI } from '@google/generative-ai';
+import Groq from 'groq-sdk';
 import axios from 'axios';
 import AWS from 'aws-sdk';
 import Stripe from 'stripe';
@@ -33,19 +33,24 @@ app.get('/admin.html', (req, res) => {
 });
 
 // Initialize services
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
+const groq = new Groq({ apiKey: process.env.GROQ_API_KEY || '' });
 
-// --- Gemini configuration -------------------------------------------------
-// Same proven setup as the Cendol homepage backend: one pinned model, one
-// direct generateContent call, no runtime model discovery and no retry ladder.
-const GEMINI_MODEL = 'gemini-2.5-flash';
+// --- Groq configuration ----------------------------------------------------
+// Same proven Cendol pattern as before: one pinned model, one direct chat
+// completion call, no runtime model discovery and no retry ladder.
+//
+// NOTE: `mixtral-8x7b-32768` has been decommissioned by Groq and is no longer
+// in GET /openai/v1/models, so pinning it would 404 every request. The default
+// below is the strongest general chat model currently on Groq's free tier.
+// Override with GROQ_MODEL to switch without a code change.
+const GROQ_MODEL = process.env.GROQ_MODEL || 'openai/gpt-oss-120b';
 
 // DigitalOcean's gateway kills a request at 30s. Cap our own call at 25s so we
 // return a real JSON error instead of the platform's opaque 504.
-const GEMINI_TIMEOUT_MS = 25000;
+const GROQ_TIMEOUT_MS = 25000;
 
 // Rejects after `ms` unless the wrapped promise settles first.
-function withTimeout(promise, ms, label = 'Gemini request') {
+function withTimeout(promise, ms, label = 'Groq request') {
   let timer;
   const timeout = new Promise((_, reject) => {
     timer = setTimeout(() => reject(new Error(`${label} timed out after ${ms}ms`)), ms);
@@ -307,8 +312,8 @@ app.post('/api/v1/chat', async (req, res) => {
   try {
     const { messages, submissionId } = req.body;
 
-    if (!process.env.GEMINI_API_KEY) {
-      return res.status(500).json({ error: 'Gemini API key not configured' });
+    if (!process.env.GROQ_API_KEY) {
+      return res.status(500).json({ error: 'Groq API key not configured' });
     }
 
     if (!Array.isArray(messages) || messages.length === 0) {
@@ -316,7 +321,7 @@ app.post('/api/v1/chat', async (req, res) => {
     }
 
     // Build the history: keep only well-formed turns, then drop any leading
-    // assistant turns so the first turn is a user turn (Gemini requires it).
+    // assistant turns so the conversation opens on a user turn.
     const clean = messages.filter(
       m => m && (m.role === 'user' || m.role === 'assistant') &&
            typeof m.content === 'string' && m.content.trim()
@@ -339,26 +344,33 @@ app.post('/api/v1/chat', async (req, res) => {
     // Get AI prompt with knowledge base
     const systemPrompt = await buildAIPrompt();
 
-    const contents = history.map(msg => ({
-      role: msg.role === 'user' ? 'user' : 'model',
-      parts: [{ text: msg.content.trim() }]
-    }));
+    // Groq speaks the OpenAI format: a flat messages array of {role, content},
+    // with the knowledge-base grounding carried as a leading system message
+    // instead of Gemini's separate systemInstruction field.
+    const groqMessages = [
+      { role: 'system', content: systemPrompt },
+      ...history.map(msg => ({
+        role: msg.role === 'user' ? 'user' : 'assistant',
+        content: msg.content.trim()
+      }))
+    ];
 
-    // Cendol pattern: build the model with the system instruction, make one
-    // direct generateContent call, read response.text() - raced against a 25s
-    // timeout so we never hit the platform's 30s gateway cutoff.
-    const model = genAI.getGenerativeModel({
-      model: GEMINI_MODEL,
-      systemInstruction: systemPrompt
-    });
-
+    // Cendol pattern preserved: one direct chat completion call, raced against
+    // a 25s timeout so we never hit the platform's 30s gateway cutoff.
     const result = await withTimeout(
-      model.generateContent({ contents }),
-      GEMINI_TIMEOUT_MS,
-      'Gemini chat request'
+      groq.chat.completions.create({
+        model: GROQ_MODEL,
+        messages: groqMessages
+      }),
+      GROQ_TIMEOUT_MS,
+      'Groq chat request'
     );
 
-    const assistantMessage = result.response.text();
+    const assistantMessage = result.choices?.[0]?.message?.content?.trim();
+
+    if (!assistantMessage) {
+      throw new Error('Groq returned an empty completion');
+    }
 
     // Log assistant message
     if (submissionId) {
@@ -375,7 +387,16 @@ app.post('/api/v1/chat', async (req, res) => {
     });
   } catch (error) {
     console.error('Chat error:', error.message || error);
-    res.status(500).json({
+
+    // Surface the cause the caller can actually act on: bad key, rate limit,
+    // retired model, or our own 25s timeout. Everything else stays a 500.
+    const status = error.status === 401 || error.status === 403 ? 502
+      : error.status === 429 ? 429
+      : error.status === 404 ? 502
+      : /timed out/.test(error.message || '') ? 504
+      : 500;
+
+    res.status(status).json({
       error: 'Failed to process chat',
       details: error.message
     });
@@ -760,44 +781,54 @@ app.get('/api/v1/health', (req, res) => {
   res.json({
     status: 'ok',
     database: process.env.DATABASE_URL ? 'configured' : 'not configured',
-    gemini: process.env.GEMINI_API_KEY ? 'configured' : 'not configured',
+    groq: process.env.GROQ_API_KEY ? 'configured' : 'not configured',
     spaces: process.env.DO_SPACES_BUCKET ? 'configured' : 'not configured'
   });
 });
 
-// Deep health check: actually exercises the Gemini credential instead of only
+// Deep health check: actually exercises the Groq credential instead of only
 // asserting the env var is non-empty. Use this to tell "key missing" from
 // "key invalid" from "model unavailable".
-app.get('/api/v1/health/gemini', async (req, res) => {
-  if (!process.env.GEMINI_API_KEY) {
-    return res.status(503).json({ ok: false, reason: 'GEMINI_API_KEY not set' });
+async function groqHealth(req, res) {
+  if (!process.env.GROQ_API_KEY) {
+    return res.status(503).json({ ok: false, reason: 'GROQ_API_KEY not set' });
   }
 
   try {
     // Cheapest possible real call against the pinned model: proves the key works
     // and the model is reachable, without any catalogue lookup.
-    const model = genAI.getGenerativeModel({ model: GEMINI_MODEL });
     const result = await withTimeout(
-      model.generateContent('ping'),
-      GEMINI_TIMEOUT_MS,
-      'Gemini health check'
+      groq.chat.completions.create({
+        model: GROQ_MODEL,
+        messages: [{ role: 'user', content: 'Reply with the single word: pong' }],
+        // Reasoning-capable models spend part of the budget on hidden reasoning
+        // tokens, so too small a cap returns an empty content string.
+        max_tokens: 256
+      }),
+      GROQ_TIMEOUT_MS,
+      'Groq health check'
     );
 
     res.json({
       ok: true,
-      model: GEMINI_MODEL,
+      model: GROQ_MODEL,
       keyValid: true,
-      sample: result.response.text().slice(0, 80)
+      sample: (result.choices?.[0]?.message?.content || '').slice(0, 80)
     });
   } catch (error) {
     res.status(503).json({
       ok: false,
-      model: GEMINI_MODEL,
-      keyValid: !/API_KEY_INVALID|API key not valid|401|403/.test(error.message || ''),
+      model: GROQ_MODEL,
+      keyValid: !(error.status === 401 || error.status === 403 ||
+                  /invalid_api_key|Invalid API Key|401|403/.test(error.message || '')),
       reason: error.message
     });
   }
-});
+}
+
+app.get('/api/v1/health/groq', groqHealth);
+// Back-compat alias so anything already probing the old path keeps working.
+app.get('/api/v1/health/gemini', groqHealth);
 
 // Initialize and start
 async function startup() {
