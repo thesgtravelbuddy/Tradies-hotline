@@ -1,5 +1,804 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Request a visit</title><link rel="stylesheet" href="/styles.css"></head><body><header><strong id="business-name">Your Trade Business</strong><p>Tell us what’s happening and we’ll get back to you.</p></header><main><section class="card"><div id="form-panel"><h1>Request help</h1><p>Please provide a few details so the right person can contact you.</p><form id="intake-form" novalidate><label for="name">Your name</label><input id="name" name="name" autocomplete="name" required><label for="phone">Phone number</label><input id="phone" name="phone" type="tel" autocomplete="tel" required><div id="email-wrap"><label for="email">Email <span id="email-optional">(optional)</span></label><input id="email" name="email" type="email" autocomplete="email"></div><label for="serviceAddress">Service address</label><input id="serviceAddress" name="serviceAddress" autocomplete="street-address" required><label for="preferredContactMethod">Best way to contact you</label><select id="preferredContactMethod" name="preferredContactMethod"><option value="phone">Phone</option><option value="email">Email</option></select><label for="description">What do you need help with?</label><textarea id="description" name="description" placeholder="Describe what you’ve noticed" required></textarea><div id="media-upload">
-            <input type="file" id="media-file" accept="image/*,video/*" multiple>
-            <label for="media-file" class="upload-button">Upload Photos/Videos</label>
-            <div id="media-preview"></div>
-          </div><div id="errors" class="error" role="alert"></div><button>Send request</button></form></div><div id="success" class="success hidden"><h1>Thanks — we’ve received your request.</h1><p>Our team will review the details and contact you using your preferred method.</p></div></section></main><script type="module" src="/customer.js"></script></body></html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tradies Hotline - Voice Assistant</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 16px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      display: flex;
+      flex-direction: column;
+      height: 90vh;
+      max-height: 900px;
+    }
+
+    .header {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 20px;
+      text-align: center;
+      border-radius: 16px 16px 0 0;
+    }
+
+    .header h1 {
+      font-size: 28px;
+      margin-bottom: 8px;
+    }
+
+    .header p {
+      font-size: 14px;
+      opacity: 0.9;
+    }
+
+    .content {
+      flex: 1;
+      overflow-y: auto;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .chat-container {
+      flex: 1;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      padding-bottom: 16px;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+    }
+
+    .message {
+      display: flex;
+      gap: 12px;
+      animation: slideIn 0.3s ease-out;
+    }
+
+    @keyframes slideIn {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .message.user {
+      justify-content: flex-end;
+    }
+
+    .message-bubble {
+      max-width: 75%;
+      padding: 12px 16px;
+      border-radius: 12px;
+      line-height: 1.6;
+      font-size: 15px;
+    }
+
+    .message.assistant .message-bubble {
+      background: #f0f0f0;
+      color: #333;
+      position: relative;
+    }
+
+    .message.user .message-bubble {
+      background: #667eea;
+      color: white;
+    }
+
+    .message-bubble .speaker-btn {
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-size: 18px;
+      margin-left: 8px;
+      padding: 4px;
+      vertical-align: middle;
+    }
+
+    .empty-state {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      color: #999;
+      text-align: center;
+      gap: 16px;
+    }
+
+    .empty-state-icon {
+      font-size: 48px;
+    }
+
+    .input-section {
+      border-top: 1px solid #eee;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .button-group {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    button {
+      padding: 12px 16px;
+      border: none;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .btn-voice {
+      background: #667eea;
+      color: white;
+      flex: 1;
+      min-width: 140px;
+    }
+
+    .btn-voice:hover:not(:disabled) {
+      background: #5568d3;
+      transform: translateY(-2px);
+      box-shadow: 0 8px 16px rgba(102, 126, 234, 0.3);
+    }
+
+    .btn-voice:disabled {
+      background: #999;
+      cursor: not-allowed;
+    }
+
+    .btn-voice.recording {
+      background: #e74c3c;
+      animation: pulse 1.5s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.7; }
+    }
+
+    .btn-upload {
+      background: #48bb78;
+      color: white;
+      flex: 1;
+      min-width: 120px;
+    }
+
+    .btn-upload:hover {
+      background: #38a169;
+    }
+
+    .btn-send {
+      background: #667eea;
+      color: white;
+      width: 100%;
+    }
+
+    .btn-send:hover:not(:disabled) {
+      background: #5568d3;
+    }
+
+    .input-text {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      font-size: 14px;
+      font-family: inherit;
+      resize: none;
+      max-height: 100px;
+    }
+
+    .input-text:focus {
+      outline: none;
+      border-color: #667eea;
+      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+
+    .status {
+      font-size: 12px;
+      color: #666;
+      text-align: center;
+    }
+
+    .recording-indicator {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      color: #e74c3c;
+      font-weight: 600;
+    }
+
+    .file-input {
+      display: none;
+    }
+
+    .form-section {
+      display: none;
+      padding: 16px;
+      background: #f9f9f9;
+      border-radius: 8px;
+      gap: 12px;
+      flex-direction: column;
+    }
+
+    .form-section.active {
+      display: flex;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .form-group label {
+      font-size: 13px;
+      font-weight: 600;
+      color: #333;
+    }
+
+    .form-group input, .form-group select {
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      font-size: 14px;
+      font-family: inherit;
+    }
+
+    .form-group input:focus, .form-group select:focus {
+      outline: none;
+      border-color: #667eea;
+      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+
+    .form-group small {
+      font-size: 12px;
+      color: #999;
+    }
+
+    .error-message {
+      padding: 12px;
+      background: #f8d7da;
+      border: 1px solid #f5c6cb;
+      border-radius: 8px;
+      color: #721c24;
+      font-size: 13px;
+      display: none;
+    }
+
+    .error-message.active {
+      display: block;
+    }
+
+    .success-screen {
+      display: none;
+      text-align: center;
+      gap: 16px;
+      flex-direction: column;
+    }
+
+    .success-screen.active {
+      display: flex;
+    }
+
+    .tradsman-card {
+      background: white;
+      border: 2px solid #667eea;
+      border-radius: 8px;
+      padding: 16px;
+      text-align: center;
+      gap: 12px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .tradsman-logo {
+      width: 80px;
+      height: 80px;
+      margin: 0 auto;
+      border-radius: 8px;
+      object-fit: contain;
+      background: #f0f0f0;
+    }
+
+    .resources-list {
+      margin-top: 16px;
+      padding-top: 16px;
+      border-top: 1px solid #eee;
+      gap: 8px;
+      flex-direction: column;
+      display: flex;
+    }
+
+    .resource-item {
+      padding: 8px;
+      background: #f9f9f9;
+      border-left: 3px solid #667eea;
+      font-size: 12px;
+      line-height: 1.4;
+    }
+
+    .resource-link {
+      color: #667eea;
+      text-decoration: none;
+      font-weight: 600;
+    }
+
+    .resource-link:hover {
+      text-decoration: underline;
+    }
+
+    .tts-controls {
+      display: flex;
+      gap: 8px;
+      margin-top: 8px;
+    }
+
+    .tts-btn {
+      background: none;
+      border: 1px solid #667eea;
+      color: #667eea;
+      padding: 6px 12px;
+      border-radius: 4px;
+      font-size: 12px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .tts-btn:hover {
+      background: #667eea;
+      color: white;
+    }
+
+    .tts-btn.playing {
+      background: #667eea;
+      color: white;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>🔧 Tradies Hotline</h1>
+      <p>Voice-Powered Trade Request</p>
+    </div>
+
+    <div class="content">
+      <!-- Chat area -->
+      <div class="chat-container" id="chatContainer">
+        <div class="empty-state">
+          <div class="empty-state-icon">👂</div>
+          <p>Click the microphone to describe your problem</p>
+        </div>
+      </div>
+
+      <!-- Customer details form -->
+      <div class="form-section" id="detailsForm">
+        <div style="font-weight: 600; margin-bottom: 8px;">Before we send this to the tradsman:</div>
+        <div class="form-group">
+          <label>Phone Number (optional)</label>
+          <input type="tel" id="phone" placeholder="+61412345678">
+          <small>For the tradsman to contact you</small>
+        </div>
+        <div class="form-group">
+          <label>Email Address (optional)</label>
+          <input type="email" id="email" placeholder="you@example.com">
+          <small>For confirmation and updates</small>
+        </div>
+        <div class="form-group">
+          <label>Address (optional)</label>
+          <input type="text" id="address" placeholder="123 Main Street, Sydney">
+        </div>
+        <div class="form-group">
+          <label>Postcode (optional)</label>
+          <input type="text" id="postcode" placeholder="2000">
+        </div>
+        <div class="form-group">
+          <label>Preferred Timeslot (optional)</label>
+          <input type="text" id="timeslot" placeholder="e.g., Tomorrow 9am-12pm">
+        </div>
+        <div class="error-message" id="contactError">Please provide either phone or email</div>
+        <button class="btn-send" onclick="submitDetails()">Submit & Send to Tradsman</button>
+      </div>
+
+      <!-- Success screen -->
+      <div class="success-screen" id="successScreen">
+        <div style="font-size: 32px;">✅</div>
+        <div style="font-size: 18px; font-weight: 600;">Request Submitted!</div>
+        <div id="successMessage"></div>
+        <div class="tradsman-card" id="tradsmanCard" style="display: none;">
+          <img id="tradsmanLogo" class="tradsman-logo" src="" alt="Tradsman logo">
+          <div style="font-weight: 600;" id="tradsmanName"></div>
+          <div style="font-size: 13px; color: #666;" id="tradsmanType"></div>
+        </div>
+        <div class="resources-list" id="resourcesList" style="display: none;"></div>
+      </div>
+    </div>
+
+    <!-- Input section -->
+    <div class="input-section">
+      <div class="status" id="statusText">Ready to listen...</div>
+      <div class="button-group">
+        <button class="btn-voice" id="recordBtn" onclick="toggleRecording()">
+          <span id="recordIcon">🎤</span> <span id="recordLabel">Record</span>
+        </button>
+        <button class="btn-upload" onclick="document.getElementById('fileInput').click()">
+          📸 Photo/Video
+        </button>
+      </div>
+      <textarea
+        id="textInput"
+        class="input-text"
+        placeholder="Type here or use voice recording..."
+        rows="2"
+        onkeydown="if(event.key==='Enter'&&!event.shiftKey) { event.preventDefault(); sendMessage(); }"
+      ></textarea>
+      <button class="btn-send" onclick="sendMessage()">Send Message</button>
+    </div>
+  </div>
+
+  <input type="file" id="fileInput" class="file-input" accept="image/*,video/*" onchange="handleFileUpload(event)">
+
+  <script>
+    let recognition;
+    let isRecording = false;
+    // Set synchronously the moment start()/stop() is requested. `isRecording` only
+    // flips inside the async onstart/onend events, so it cannot guard against a
+    // second start() issued before onstart fires (InvalidStateError).
+    let recognitionPending = false;
+    let messages = [];
+    let submissionId = null;
+    let conversationStarted = false;
+
+    // Initialize Web Speech API
+    if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      recognition = new SpeechRecognition();
+      recognition.continuous = false;
+      recognition.interimResults = true;
+      recognition.lang = 'en-AU';
+
+      recognition.onstart = () => {
+        isRecording = true;
+        recognitionPending = false;
+        document.getElementById('recordBtn').classList.add('recording');
+        document.getElementById('recordLabel').textContent = 'Stop';
+        document.getElementById('statusText').textContent = '🔴 Recording...';
+      };
+
+      recognition.onend = () => {
+        isRecording = false;
+        recognitionPending = false;
+        document.getElementById('recordBtn').classList.remove('recording');
+        document.getElementById('recordLabel').textContent = 'Record';
+        document.getElementById('statusText').textContent = 'Ready to listen...';
+      };
+
+      recognition.onresult = (event) => {
+        let finalTranscript = '';
+        for (let i = event.resultIndex; i < event.results.length; i++) {
+          const transcript = event.results[i][0].transcript;
+          if (event.results[i].isFinal) {
+            finalTranscript += transcript + ' ';
+          }
+        }
+        if (finalTranscript) {
+          document.getElementById('textInput').value = finalTranscript.trim();
+        }
+      };
+
+      recognition.onerror = (event) => {
+        isRecording = false;
+        recognitionPending = false;
+        document.getElementById('recordBtn').classList.remove('recording');
+        document.getElementById('recordLabel').textContent = 'Record';
+        // "aborted" fires on a normal stop and is not worth surfacing to the user.
+        if (event.error === 'aborted') {
+          document.getElementById('statusText').textContent = 'Ready to listen...';
+          return;
+        }
+        document.getElementById('statusText').textContent = `❌ Error: ${event.error}`;
+      };
+    } else {
+      document.getElementById('recordBtn').disabled = true;
+      document.getElementById('statusText').textContent = 'Speech recognition not supported';
+    }
+
+    function toggleRecording() {
+      if (!recognition) return;
+
+      // A start/stop request is already in flight - ignore this click.
+      if (recognitionPending) return;
+
+      if (isRecording) {
+        recognitionPending = true;
+        try {
+          recognition.stop();
+        } catch (error) {
+          console.warn('Speech recognition stop() failed:', error);
+          recognitionPending = false;
+        }
+        return;
+      }
+
+      recognitionPending = true;
+      try {
+        recognition.start();
+      } catch (error) {
+        // Chrome throws InvalidStateError if start() is called while the engine is
+        // still running. Recover instead of leaving the button stuck.
+        console.warn('Speech recognition start() failed:', error);
+        recognitionPending = false;
+        isRecording = false;
+        document.getElementById('recordBtn').classList.remove('recording');
+        document.getElementById('recordLabel').textContent = 'Record';
+        document.getElementById('statusText').textContent = 'Ready to listen...';
+      }
+    }
+
+    async function startSubmission() {
+      try {
+        const response = await fetch('/api/v1/submission/start', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({})
+        });
+        const data = await response.json();
+        submissionId = data.submissionId;
+        conversationStarted = true;
+
+        const greeting = "👋 Hello! Welcome to Tradies Hotline.\n\nI'm here to help you describe your plumbing issue so we can connect you with the right professional.\n\nTell me - what's happening with your plumbing? Feel free to share as much detail as you can.";
+        // NOTE: the greeting is displayed only. It is deliberately NOT pushed into
+        // `messages`, because Gemini (v1beta) rejects any history whose first turn
+        // is a model/assistant turn: "First content should be with role 'user'".
+        displayMessage('assistant', greeting);
+      } catch (error) {
+        console.error('Error starting submission:', error);
+        document.getElementById('statusText').textContent = '❌ Connection error';
+      }
+    }
+
+    // Build the history sent to /api/v1/chat.
+    // Gemini v1beta requires the first turn to have role 'user', so we drop any
+    // leading assistant turns and normalise each entry to {role, content}.
+    function buildChatHistory() {
+      const firstUser = messages.findIndex(m => m && m.role === 'user');
+      if (firstUser === -1) return [];
+      return messages
+        .slice(firstUser)
+        .filter(m => m && (m.role === 'user' || m.role === 'assistant') && typeof m.content === 'string' && m.content.trim())
+        .map(m => ({ role: m.role, content: m.content }));
+    }
+
+    async function sendMessage() {
+      const textInput = document.getElementById('textInput');
+      const userMessage = textInput.value.trim();
+
+      if (!userMessage) return;
+
+      if (!conversationStarted) {
+        await startSubmission();
+      }
+
+      messages.push({ role: 'user', content: userMessage });
+      displayMessage('user', userMessage);
+      textInput.value = '';
+
+      try {
+        const response = await fetch('/api/v1/chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ messages: buildChatHistory(), submissionId })
+        });
+
+        if (!response.ok) {
+          // The server sends a friendly message for 503 (AI service busy);
+          // prefer it over the generic fallback text.
+          let serverMessage = '';
+          try {
+            serverMessage = (await response.json()).error || '';
+          } catch (_) { /* non-JSON error body */ }
+          const failure = new Error(serverMessage || 'Chat failed');
+          failure.userFacing = response.status === 503 && Boolean(serverMessage);
+          throw failure;
+        }
+
+        const data = await response.json();
+        messages.push({ role: 'assistant', content: data.content });
+        displayMessage('assistant', data.content);
+
+        // Auto-show form after 4-5 turns
+        if (messages.length >= 8 && !document.getElementById('detailsForm').classList.contains('active')) {
+          setTimeout(() => document.getElementById('detailsForm').classList.add('active'), 1000);
+        }
+      } catch (error) {
+        console.error('Chat error:', error);
+        displayMessage('assistant', error.userFacing
+          ? `⏳ ${error.message}`
+          : '❌ Sorry, I had trouble processing that. Please try again.');
+      }
+    }
+
+    function displayMessage(role, content) {
+      const chatContainer = document.getElementById('chatContainer');
+
+      // Remove empty state
+      const emptyState = chatContainer.querySelector('.empty-state');
+      if (emptyState && messages.length <= 2) {
+        emptyState.remove();
+      }
+
+      const messageDiv = document.createElement('div');
+      messageDiv.className = `message ${role}`;
+
+      const bubble = document.createElement('div');
+      bubble.className = 'message-bubble';
+      bubble.textContent = content;
+
+      // Add TTS button for assistant messages
+      if (role === 'assistant') {
+        const speakerBtn = document.createElement('button');
+        speakerBtn.className = 'tts-btn';
+        speakerBtn.textContent = '🔊';
+        speakerBtn.onclick = () => playText(content, speakerBtn);
+        bubble.appendChild(speakerBtn);
+      }
+
+      messageDiv.appendChild(bubble);
+      chatContainer.appendChild(messageDiv);
+      chatContainer.scrollTop = chatContainer.scrollHeight;
+    }
+
+    function playText(text, button) {
+      if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.rate = 0.9; // Slightly slower for elderly users
+        utterance.pitch = 1;
+        utterance.volume = 1;
+
+        utterance.onstart = () => button.classList.add('playing');
+        utterance.onend = () => button.classList.remove('playing');
+        utterance.onerror = () => button.classList.remove('playing');
+
+        speechSynthesis.speak(utterance);
+      }
+    }
+
+    async function handleFileUpload(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      if (!conversationStarted) {
+        await startSubmission();
+      }
+
+      const reader = new FileReader();
+      reader.onload = async (e) => {
+        try {
+          displayMessage('user', `📎 Uploading ${file.name}...`);
+
+          const response = await fetch('/api/v1/upload', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              file: e.target.result,
+              type: file.type,
+              submissionId,
+              filename: file.name
+            })
+          });
+
+          if (!response.ok) throw new Error('Upload failed');
+
+          const data = await response.json();
+          displayMessage('user', `📎 ${file.name} uploaded`);
+          displayMessage('assistant', 'Great! I can see the photo/video. Can you tell me more about what it shows?');
+        } catch (error) {
+          console.error('Upload error:', error);
+          displayMessage('assistant', '❌ Failed to upload. Please try again.');
+        }
+      };
+
+      reader.readAsDataURL(file);
+      event.target.value = '';
+    }
+
+    async function submitDetails() {
+      const phone = document.getElementById('phone').value.trim();
+      const email = document.getElementById('email').value.trim();
+      const address = document.getElementById('address').value.trim();
+      const postcode = document.getElementById('postcode').value.trim();
+      const timeslot = document.getElementById('timeslot').value.trim();
+
+      if (!phone && !email) {
+        document.getElementById('contactError').classList.add('active');
+        return;
+      }
+
+      document.getElementById('contactError').classList.remove('active');
+
+      try {
+        // Update submission
+        const detailsResponse = await fetch(`/api/v1/submission/${submissionId}/details`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            phone: phone || null,
+            email: email || null,
+            address: address || null,
+            postcode: postcode || null,
+            preferredTimeslot: timeslot || null
+          })
+        });
+
+        if (!detailsResponse.ok) throw new Error('Details update failed');
+
+        // Submit
+        const submitResponse = await fetch(`/api/v1/submission/${submissionId}/submit`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({})
+        });
+
+        const submitData = await submitResponse.json();
+
+        // Show success screen
+        document.getElementById('detailsForm').classList.remove('active');
+        document.getElementById('successScreen').classList.add('active');
+        document.getElementById('successMessage').textContent = submitData.message;
+
+        // Disable inputs
+        document.getElementById('textInput').disabled = true;
+        document.getElementById('recordBtn').disabled = true;
+      } catch (error) {
+        console.error('Submission error:', error);
+        document.getElementById('contactError').textContent = 'Submission failed. Please try again.';
+        document.getElementById('contactError').classList.add('active');
+      }
+    }
+
+    // Start on focus
+    document.getElementById('textInput').addEventListener('focus', () => {
+      if (!conversationStarted) {
+        startSubmission();
+      }
+    });
+  </script>
+</body>
+</html>
