@@ -811,21 +811,276 @@
       chatContainer.scrollTop = chatContainer.scrollHeight;
     }
 
-    function playText(text, button) {
-      if ('speechSynthesis' in window) {
-        window.speechSynthesis.cancel();
+    /* ==================================================================
+       TEXT-TO-SPEECH
+       Goal: a natural-sounding, medium-pitched male voice that reads
+       assertively, lifts on questions, and pauses like a human would.
+       ================================================================== */
 
-        const utterance = new SpeechSynthesisUtterance(text);
-        utterance.rate = 0.9; // Slightly slower for elderly users
-        utterance.pitch = 1;
-        utterance.volume = 1;
+    // --- Voice selection ----------------------------------------------
+    const TTS_MALE_HINTS = [
+      'male', 'man', 'alex', 'aaron', 'arthur', 'brian', 'bruce', 'christopher',
+      'daniel', 'david', 'eric', 'fred', 'george', 'gordon', 'guy', 'james',
+      'jamie', 'john', 'lee', 'liam', 'mark', 'matthew', 'michael', 'nathan',
+      'oliver', 'ralph', 'reed', 'rishi', 'roger', 'russell', 'ryan', 'steffan',
+      'thomas', 'tom', 'william'
+    ];
 
-        utterance.onstart = () => button.classList.add('playing');
-        utterance.onend = () => button.classList.remove('playing');
-        utterance.onerror = () => button.classList.remove('playing');
+    const TTS_FEMALE_HINTS = [
+      'female', 'woman', 'allison', 'amelie', 'ana', 'anna', 'aria', 'ava',
+      'carol', 'catherine', 'clara', 'emma', 'fiona', 'hazel', 'jenny',
+      'joanna', 'karen', 'kate', 'kathy', 'libby', 'linda', 'lisa', 'maisie',
+      'michelle', 'moira', 'natasha', 'nicky', 'samantha', 'sandy', 'sara',
+      'serena', 'shelley', 'sonia', 'susan', 'tessa', 'veena', 'victoria',
+      'zira', 'zoe'
+    ];
 
-        speechSynthesis.speak(utterance);
+    // Novelty / low-quality engines that sound obviously synthetic.
+    const TTS_ROBOTIC_HINTS = [
+      'espeak', 'zarvox', 'trinoids', 'albert', 'bahh', 'bells', 'boing',
+      'bubbles', 'cellos', 'deranged', 'hysterical', 'organ', 'whisper',
+      'bad news', 'good news', 'pipe organ', 'compact', 'novelty'
+    ];
+
+    // Markers vendors use for their newer, more human-sounding models.
+    const TTS_QUALITY_HINTS = [
+      'natural', 'neural', 'premium', 'enhanced', 'siri', 'wavenet', 'studio'
+    ];
+
+    let ttsVoice = null;          // cached winner
+    let ttsVoiceChosen = false;   // has selection run against a populated list
+
+    function scoreVoice(voice) {
+      const name = (voice.name || '').toLowerCase();
+      const uri = (voice.voiceURI || '').toLowerCase();
+      const id = name + ' ' + uri;
+      const lang = (voice.lang || '').toLowerCase().replace('_', '-');
+      let score = 0;
+
+      // English only — anything else is disqualified outright.
+      if (!lang.startsWith('en')) return -Infinity;
+
+      // Locale: this is an Australian trades service, so match the accent
+      // used by speech recognition (en-AU), then the nearest neighbours.
+      if (lang.startsWith('en-au')) score += 45;
+      else if (lang.startsWith('en-nz')) score += 28;
+      else if (lang.startsWith('en-gb')) score += 25;
+      else if (lang.startsWith('en-us')) score += 15;
+      else score += 5;
+
+      // Gender: female names are hard-excluded, male names strongly favoured.
+      // "female" is checked first because it contains the substring "male".
+      const isFemale = TTS_FEMALE_HINTS.some(h => id.includes(h));
+      if (isFemale) return -Infinity;
+      if (TTS_MALE_HINTS.some(h => id.includes(h))) score += 60;
+
+      // Quality: reward modern neural voices, punish novelty/robotic ones.
+      if (TTS_QUALITY_HINTS.some(h => id.includes(h))) score += 40;
+      if (TTS_ROBOTIC_HINTS.some(h => id.includes(h))) score -= 80;
+
+      // Legacy desktop SAPI voices (e.g. "Microsoft David Desktop") are the
+      // classic robotic sound; the newer "Microsoft ... Online (Natural)"
+      // voices already picked up the quality bonus above.
+      if (id.includes('desktop')) score -= 35;
+      if (id.includes('microsoft') && !id.includes('natural')) score -= 15;
+      if (id.includes('google') && !id.includes('natural')) score -= 10;
+
+      // Small tie-breakers.
+      if (voice.localService) score += 3;   // no network stall mid-sentence
+      if (voice.default) score += 2;
+
+      return score;
+    }
+
+    function selectVoice() {
+      let voices = [];
+      try { voices = window.speechSynthesis.getVoices() || []; } catch (e) { voices = []; }
+      if (!voices.length) return null;   // list not populated yet
+
+      let best = null;
+      let bestScore = -Infinity;
+      voices.forEach(v => {
+        const s = scoreVoice(v);
+        if (s > bestScore) { bestScore = s; best = v; }
+      });
+
+      // Fallback chain: no acceptable male/English voice scored, so take any
+      // English voice, and failing that the browser default (first entry).
+      if (!best || bestScore === -Infinity) {
+        best = voices.find(v => (v.lang || '').toLowerCase().startsWith('en-au'))
+            || voices.find(v => (v.lang || '').toLowerCase().startsWith('en'))
+            || voices.find(v => v.default)
+            || voices[0];
       }
+
+      ttsVoice = best || null;
+      ttsVoiceChosen = !!best;
+      return ttsVoice;
+    }
+
+    if ('speechSynthesis' in window) {
+      // Voice lists load asynchronously in Chrome/Edge — prime it now and
+      // re-run selection when the browser reports the list is ready.
+      selectVoice();
+      window.speechSynthesis.onvoiceschanged = () => selectVoice();
+      window.addEventListener('beforeunload', () => window.speechSynthesis.cancel());
+    }
+
+    // --- Speech shaping ------------------------------------------------
+    const TTS_BASE = { rate: 0.95, pitch: 0.85, volume: 1.0 };
+
+    // Strip emoji/pictographs so the engine doesn't announce "cross mark".
+    function cleanForSpeech(text) {
+      return String(text || '')
+        .replace(/[\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}\u{FE0F}\u{2190}-\u{21FF}\u{2B00}-\u{2BFF}]/gu, ' ')
+        .replace(/\s{2,}/g, ' ')
+        .trim();
+    }
+
+    // Break into sentence-sized chunks. Chunking gives us human pacing
+    // (real gaps between sentences) and dodges the Chrome bug where a long
+    // single utterance cuts out after ~15 seconds.
+    function buildChunks(text) {
+      // Match-based split (rather than a lookbehind) so the script still
+      // parses on older Safari builds.
+      const raw = (cleanForSpeech(text).match(/[^.!?]+[.!?]*/g) || [])
+        .map(s => s.trim())
+        .filter(Boolean);
+
+      // Decimal amounts ("$1.50", "3.5 hours") look like sentence breaks to
+      // the splitter above — stitch those fragments back together.
+      const sentences = [];
+      raw.forEach(s => {
+        const prev = sentences[sentences.length - 1];
+        if (prev && /\d\.$/.test(prev) && /^\d/.test(s)) {
+          sentences[sentences.length - 1] = prev + s;
+        } else {
+          sentences.push(s);
+        }
+      });
+
+      const chunks = [];
+      sentences.forEach(sentence => {
+        // A question mark only ever lands on the final clause, so decide
+        // the intonation once per sentence and apply it to every clause.
+        const isQuestion = /\?\s*$/.test(sentence);
+
+        // Very long sentences get split on clause boundaries so the
+        // delivery keeps breathing instead of running on.
+        const parts = sentence.length > 180
+          ? (sentence.match(/[^,;:]+[,;:]*/g) || [sentence]).map(p => p.trim()).filter(Boolean)
+          : [sentence];
+
+        parts.forEach((part, i) => {
+          const isLastPart = i === parts.length - 1;
+          chunks.push({
+            text: part,
+            isQuestion,
+            // Enquiring lift: questions rise slightly and slow a touch so
+            // they land as a genuine question rather than a flat statement.
+            pitch: isQuestion ? TTS_BASE.pitch + 0.15 : TTS_BASE.pitch,
+            rate:  isQuestion ? TTS_BASE.rate - 0.03 : TTS_BASE.rate,
+            // Beat of silence before a question — the assertive "hang on,
+            // here's what I need from you" pause. Only before the opening
+            // clause, never mid-sentence.
+            gapBefore: (isQuestion && i === 0) ? 320 : 0,
+            gapAfter: isLastPart ? 220 : 90
+          });
+        });
+      });
+
+      return chunks.length ? chunks : [{
+        text: cleanForSpeech(text), isQuestion: false,
+        pitch: TTS_BASE.pitch, rate: TTS_BASE.rate, gapBefore: 0, gapAfter: 0
+      }];
+    }
+
+    // --- Playback ------------------------------------------------------
+    let ttsRunId = 0;          // invalidates any in-flight sequence
+    let ttsActiveButton = null;
+    let ttsKeepAlive = null;
+
+    function stopSpeech() {
+      ttsRunId++;
+      if (ttsKeepAlive) { clearInterval(ttsKeepAlive); ttsKeepAlive = null; }
+      try { window.speechSynthesis.cancel(); } catch (e) {}
+      if (ttsActiveButton) ttsActiveButton.classList.remove('playing');
+      ttsActiveButton = null;
+    }
+
+    function playText(text, button) {
+      if (!('speechSynthesis' in window)) return;
+
+      // Clicking the speaker of the message that's already talking stops it.
+      const wasPlaying = button && button.classList.contains('playing');
+      stopSpeech();
+      if (wasPlaying) return;
+
+      const spoken = cleanForSpeech(text);
+      if (!spoken) return;
+
+      // Late-loading voice lists: try once more at play time.
+      if (!ttsVoiceChosen) selectVoice();
+
+      const runId = ++ttsRunId;
+      const chunks = buildChunks(spoken);
+      let index = 0;
+
+      if (button) { button.classList.add('playing'); ttsActiveButton = button; }
+
+      // Chrome silently suspends synthesis on longer reads; a periodic
+      // resume() keeps it running.
+      ttsKeepAlive = setInterval(() => {
+        if (window.speechSynthesis.speaking && !window.speechSynthesis.paused) {
+          try { window.speechSynthesis.resume(); } catch (e) {}
+        }
+      }, 5000);
+
+      const finish = () => {
+        if (runId !== ttsRunId) return;
+        if (ttsKeepAlive) { clearInterval(ttsKeepAlive); ttsKeepAlive = null; }
+        if (button) button.classList.remove('playing');
+        if (ttsActiveButton === button) ttsActiveButton = null;
+      };
+
+      const speakNext = () => {
+        if (runId !== ttsRunId) return;             // superseded or stopped
+        if (index >= chunks.length) return finish();
+
+        const chunk = chunks[index++];
+        const utterance = new SpeechSynthesisUtterance(chunk.text);
+
+        if (ttsVoice) {
+          utterance.voice = ttsVoice;
+          utterance.lang = ttsVoice.lang;           // some engines need both
+        } else {
+          utterance.lang = 'en-AU';                 // fallback: at least the accent
+        }
+
+        utterance.rate = chunk.rate;
+        utterance.pitch = chunk.pitch;
+        utterance.volume = TTS_BASE.volume;
+
+        utterance.onend = () => {
+          if (runId !== ttsRunId) return;
+          setTimeout(speakNext, chunk.gapAfter);
+        };
+        utterance.onerror = () => {
+          if (runId !== ttsRunId) return;
+          // Don't abandon the whole message on one bad chunk.
+          setTimeout(speakNext, 60);
+        };
+
+        const start = () => {
+          if (runId !== ttsRunId) return;
+          try { window.speechSynthesis.speak(utterance); }
+          catch (e) { finish(); }
+        };
+
+        chunk.gapBefore ? setTimeout(start, chunk.gapBefore) : start();
+      };
+
+      speakNext();
     }
 
     async function handleFileUpload(event) {
