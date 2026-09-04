@@ -474,101 +474,234 @@
   <input type="file" id="fileInput" class="file-input" accept="image/*,video/*" onchange="handleFileUpload(event)">
 
   <script>
-    let recognition;
-    let isRecording = false;
-    // Set synchronously the moment start()/stop() is requested. `isRecording` only
-    // flips inside the async onstart/onend events, so it cannot guard against a
-    // second start() issued before onstart fires (InvalidStateError).
-    let recognitionPending = false;
     let messages = [];
     let submissionId = null;
     let conversationStarted = false;
 
-    // Initialize Web Speech API
-    if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
-      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-      recognition = new SpeechRecognition();
-      recognition.continuous = false;
+    // =================================================================
+    // Voice input (Web Speech API)
+    // =================================================================
+    let recognition = null;
+    let isRecording = false;
+
+    // Set synchronously the moment start()/stop() is requested. `isRecording`
+    // only flips inside the async onstart/onend handlers, so it cannot guard a
+    // second start() issued before onstart has fired - which is what produces
+    // Chrome's InvalidStateError "recognition has already started".
+    let recognitionPending = false;
+
+    // If the browser never delivers onstart/onerror - the permission prompt is
+    // dismissed rather than answered, or the tab is backgrounded mid-start -
+    // `recognitionPending` would stay true forever and every later click would
+    // be silently swallowed. The watchdog releases the guard so the button can
+    // never end up permanently dead.
+    let watchdogTimer = null;
+    const VOICE_WATCHDOG_MS = 8000;
+
+    // Whatever was already in the textarea when recording began. Transcripts are
+    // appended to it instead of replacing it, so voice never eats typed text.
+    let baseText = '';
+    let finalTranscript = '';
+
+    // Set by onerror so the onend that follows does not overwrite the
+    // explanation with a generic "Ready to listen...".
+    let pendingStatusMessage = '';
+
+    function setStatus(message) {
+      const el = document.getElementById('statusText');
+      if (el) el.textContent = message;
+    }
+
+    function setVoiceUI(state) {
+      const btn = document.getElementById('recordBtn');
+      const label = document.getElementById('recordLabel');
+      if (btn) btn.classList.toggle('recording', state === 'listening');
+      if (label) label.textContent = state === 'listening' ? 'Stop' : 'Record';
+    }
+
+    function clearWatchdog() {
+      if (watchdogTimer !== null) {
+        clearTimeout(watchdogTimer);
+        watchdogTimer = null;
+      }
+    }
+
+    // The single recovery path: release every guard and return the button to idle.
+    function resetVoiceUI(message) {
+      clearWatchdog();
+      isRecording = false;
+      recognitionPending = false;
+      setVoiceUI('idle');
+      setStatus(message || 'Ready to listen...');
+    }
+
+    function armWatchdog() {
+      clearWatchdog();
+      watchdogTimer = setTimeout(() => {
+        watchdogTimer = null;
+        if (!recognitionPending) return;
+        console.warn('Speech recognition did not respond in time - resetting.');
+        try { if (recognition) recognition.abort(); } catch (_) { /* already dead */ }
+        resetVoiceUI('Ready to listen... (tap Record to try again)');
+      }, VOICE_WATCHDOG_MS);
+    }
+
+    function currentInputText() {
+      const parts = [baseText.trim(), finalTranscript.trim()].filter(Boolean);
+      return parts.join(' ');
+    }
+
+    function initSpeechRecognition() {
+      const SpeechRecognitionCtor = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+      // Chrome/Safari only expose the mic on a secure origin. Without this check
+      // the constructor exists but start() fails silently - the classic
+      // "the button does nothing" report when a build is served over plain http.
+      if (window.isSecureContext === false) {
+        const btn = document.getElementById('recordBtn');
+        if (btn) btn.disabled = true;
+        setStatus('Voice needs a secure (https) connection - please type instead');
+        return;
+      }
+
+      if (!SpeechRecognitionCtor) {
+        const btn = document.getElementById('recordBtn');
+        if (btn) btn.disabled = true;
+        setStatus('Voice input is not supported in this browser - please type instead');
+        return;
+      }
+
+      try {
+        recognition = new SpeechRecognitionCtor();
+      } catch (error) {
+        console.error('Could not create SpeechRecognition:', error);
+        const btn = document.getElementById('recordBtn');
+        if (btn) btn.disabled = true;
+        setStatus('Voice input is unavailable - please type instead');
+        return;
+      }
+
+      // continuous: the user decides when to stop, so a pause mid-sentence does
+      // not silently end the session (important for older callers who speak slowly).
+      recognition.continuous = true;
       recognition.interimResults = true;
+      recognition.maxAlternatives = 1;
       recognition.lang = 'en-AU';
 
       recognition.onstart = () => {
+        clearWatchdog();
         isRecording = true;
         recognitionPending = false;
-        document.getElementById('recordBtn').classList.add('recording');
-        document.getElementById('recordLabel').textContent = 'Stop';
-        document.getElementById('statusText').textContent = '🔴 Recording...';
-      };
-
-      recognition.onend = () => {
-        isRecording = false;
-        recognitionPending = false;
-        document.getElementById('recordBtn').classList.remove('recording');
-        document.getElementById('recordLabel').textContent = 'Record';
-        document.getElementById('statusText').textContent = 'Ready to listen...';
+        pendingStatusMessage = '';
+        setVoiceUI('listening');
+        setStatus('🔴 Listening...');
       };
 
       recognition.onresult = (event) => {
-        let finalTranscript = '';
+        let interim = '';
         for (let i = event.resultIndex; i < event.results.length; i++) {
           const transcript = event.results[i][0].transcript;
           if (event.results[i].isFinal) {
             finalTranscript += transcript + ' ';
+          } else {
+            interim += transcript;
           }
         }
-        if (finalTranscript) {
-          document.getElementById('textInput').value = finalTranscript.trim();
-        }
+        const input = document.getElementById('textInput');
+        if (!input) return;
+        // Live preview: what is already typed + confirmed speech + the in-flight guess.
+        const parts = [baseText.trim(), (finalTranscript + interim).trim()].filter(Boolean);
+        input.value = parts.join(' ');
       };
 
       recognition.onerror = (event) => {
-        isRecording = false;
-        recognitionPending = false;
-        document.getElementById('recordBtn').classList.remove('recording');
-        document.getElementById('recordLabel').textContent = 'Record';
-        // "aborted" fires on a normal stop and is not worth surfacing to the user.
-        if (event.error === 'aborted') {
-          document.getElementById('statusText').textContent = 'Ready to listen...';
-          return;
+        const code = (event && event.error) || 'unknown';
+        // "aborted" is what a normal stop() looks like - never surface it.
+        if (code === 'aborted') {
+          pendingStatusMessage = '';
+        } else if (code === 'no-speech') {
+          pendingStatusMessage = "Didn't catch that - tap Record and try again";
+        } else if (code === 'not-allowed' || code === 'service-not-allowed') {
+          pendingStatusMessage = '🎤 Microphone blocked - allow mic access in your browser settings';
+        } else if (code === 'audio-capture') {
+          pendingStatusMessage = '🎤 No microphone found - check your device';
+        } else if (code === 'network') {
+          pendingStatusMessage = '❌ Network problem - the speech service is unreachable';
+        } else {
+          pendingStatusMessage = '❌ Voice error: ' + code;
         }
-        document.getElementById('statusText').textContent = `❌ Error: ${event.error}`;
+        console.warn('Speech recognition error:', code);
+        resetVoiceUI(pendingStatusMessage);
       };
-    } else {
-      document.getElementById('recordBtn').disabled = true;
-      document.getElementById('statusText').textContent = 'Speech recognition not supported';
+
+      // onend is the one guaranteed terminal event - it fires after a stop(), an
+      // abort(), an error, and an engine-initiated timeout. All cleanup and the
+      // hand-off to the chat happen here so there is exactly one exit path.
+      recognition.onend = () => {
+        const captured = finalTranscript.trim();
+        const input = document.getElementById('textInput');
+        if (input) input.value = currentInputText();
+
+        finalTranscript = '';
+        baseText = '';
+
+        resetVoiceUI(pendingStatusMessage || 'Ready to listen...');
+        pendingStatusMessage = '';
+
+        // Hand the recorded words to the chat.
+        if (captured && input && input.value.trim()) {
+          sendMessage();
+        }
+      };
     }
 
     function toggleRecording() {
-      if (!recognition) return;
+      if (!recognition) {
+        // Never leave a click unexplained.
+        const btn = document.getElementById('recordBtn');
+        if (btn) btn.disabled = true;
+        setStatus('Voice input is not available - please type your message instead');
+        return;
+      }
 
-      // A start/stop request is already in flight - ignore this click.
+      // A start or stop is already in flight - swallow this click rather than
+      // calling start()/stop() twice and tripping InvalidStateError.
       if (recognitionPending) return;
 
       if (isRecording) {
         recognitionPending = true;
+        armWatchdog();
         try {
           recognition.stop();
         } catch (error) {
           console.warn('Speech recognition stop() failed:', error);
-          recognitionPending = false;
+          try { recognition.abort(); } catch (_) { /* nothing left to abort */ }
+          resetVoiceUI('Ready to listen...');
         }
         return;
       }
 
+      // Starting fresh: snapshot what is typed so speech is appended, not pasted over.
+      const input = document.getElementById('textInput');
+      baseText = input ? input.value : '';
+      finalTranscript = '';
+      pendingStatusMessage = '';
+
       recognitionPending = true;
+      armWatchdog();
       try {
         recognition.start();
+        setStatus('Starting microphone...');
       } catch (error) {
-        // Chrome throws InvalidStateError if start() is called while the engine is
-        // still running. Recover instead of leaving the button stuck.
+        // Chrome throws InvalidStateError when the engine is still winding down.
+        // abort() forces it back to idle so the next click can succeed.
         console.warn('Speech recognition start() failed:', error);
-        recognitionPending = false;
-        isRecording = false;
-        document.getElementById('recordBtn').classList.remove('recording');
-        document.getElementById('recordLabel').textContent = 'Record';
-        document.getElementById('statusText').textContent = 'Ready to listen...';
+        try { recognition.abort(); } catch (_) { /* already idle */ }
+        resetVoiceUI('Ready to listen... (tap Record to try again)');
       }
     }
+
+    initSpeechRecognition();
 
     async function startSubmission() {
       try {
