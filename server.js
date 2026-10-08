@@ -18,6 +18,11 @@ const __dirname = dirname(__filename);
 
 const app = express();
 app.use(cors());
+// Vercel: run DB init once before handling any request (see ensureInitialized).
+app.use(async (req, res, next) => {
+  if (process.env.VERCEL) await ensureInitialized();
+  next();
+});
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb' }));
 app.use(express.static('.'));
@@ -830,18 +835,31 @@ app.get('/api/v1/health/groq', groqHealth);
 // Back-compat alias so anything already probing the old path keeps working.
 app.get('/api/v1/health/gemini', groqHealth);
 
-// Initialize and start
-async function startup() {
-  await initializeDatabase();
-  await seedKnowledgeBase();
-  await seedAdminUser();
+// Initialize and start.
+// On Vercel the platform invokes the exported Express app per request (no
+// listen()), so DB init runs once, lazily, before the first API request.
+let initPromise = null;
+function ensureInitialized() {
+  if (!initPromise) {
+    initPromise = (async () => {
+      await initializeDatabase();
+      await seedKnowledgeBase();
+      await seedAdminUser();
+    })().catch((err) => {
+      console.error('Startup init failed:', err);
+      initPromise = null; // allow retry on next request
+    });
+  }
+  return initPromise;
+}
 
-  const PORT = process.env.PORT || 3000;
-  app.listen(PORT, () => {
-    console.log(`✓ Tradies Hotline API running on http://localhost:${PORT}`);
-    console.log(`✓ Customer app: http://localhost:${PORT}`);
-    console.log(`✓ Admin panel: http://localhost:${PORT}/admin.html`);
+if (!process.env.VERCEL) {
+  ensureInitialized().then(() => {
+    const PORT = process.env.PORT || 3000;
+    app.listen(PORT, () => {
+      console.log(`Tradies Hotline API running on http://localhost:${PORT}`);
+    });
   });
 }
 
-startup();
+export default app;
