@@ -474,82 +474,274 @@
   <input type="file" id="fileInput" class="file-input" accept="image/*,video/*" onchange="handleFileUpload(event)">
 
   <script>
-    let recognition;
-    let isRecording = false;
     let messages = [];
     let submissionId = null;
     let conversationStarted = false;
 
-    // Initialize Web Speech API
-    if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
-      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-      recognition = new SpeechRecognition();
-      recognition.continuous = false;
+    // =================================================================
+    // Voice input (Web Speech API)
+    // =================================================================
+    let recognition = null;
+    let isRecording = false;
+
+    // Set synchronously the moment start()/stop() is requested. `isRecording`
+    // only flips inside the async onstart/onend handlers, so it cannot guard a
+    // second start() issued before onstart has fired - which is what produces
+    // Chrome's InvalidStateError "recognition has already started".
+    let recognitionPending = false;
+
+    // If the browser never delivers onstart/onerror - the permission prompt is
+    // dismissed rather than answered, or the tab is backgrounded mid-start -
+    // `recognitionPending` would stay true forever and every later click would
+    // be silently swallowed. The watchdog releases the guard so the button can
+    // never end up permanently dead.
+    let watchdogTimer = null;
+    const VOICE_WATCHDOG_MS = 8000;
+
+    // Whatever was already in the textarea when recording began. Transcripts are
+    // appended to it instead of replacing it, so voice never eats typed text.
+    let baseText = '';
+    let finalTranscript = '';
+
+    // Set by onerror so the onend that follows does not overwrite the
+    // explanation with a generic "Ready to listen...".
+    let pendingStatusMessage = '';
+
+    function setStatus(message) {
+      const el = document.getElementById('statusText');
+      if (el) el.textContent = message;
+    }
+
+    function setVoiceUI(state) {
+      const btn = document.getElementById('recordBtn');
+      const label = document.getElementById('recordLabel');
+      if (btn) btn.classList.toggle('recording', state === 'listening');
+      if (label) label.textContent = state === 'listening' ? 'Stop' : 'Record';
+    }
+
+    function clearWatchdog() {
+      if (watchdogTimer !== null) {
+        clearTimeout(watchdogTimer);
+        watchdogTimer = null;
+      }
+    }
+
+    // The single recovery path: release every guard and return the button to idle.
+    function resetVoiceUI(message) {
+      clearWatchdog();
+      isRecording = false;
+      recognitionPending = false;
+      setVoiceUI('idle');
+      setStatus(message || 'Ready to listen...');
+    }
+
+    function armWatchdog() {
+      clearWatchdog();
+      watchdogTimer = setTimeout(() => {
+        watchdogTimer = null;
+        if (!recognitionPending) return;
+        console.warn('Speech recognition did not respond in time - resetting.');
+        try { if (recognition) recognition.abort(); } catch (_) { /* already dead */ }
+        resetVoiceUI('Ready to listen... (tap Record to try again)');
+      }, VOICE_WATCHDOG_MS);
+    }
+
+    function currentInputText() {
+      const parts = [baseText.trim(), finalTranscript.trim()].filter(Boolean);
+      return parts.join(' ');
+    }
+
+    function initSpeechRecognition() {
+      const SpeechRecognitionCtor = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+      // Chrome/Safari only expose the mic on a secure origin. Without this check
+      // the constructor exists but start() fails silently - the classic
+      // "the button does nothing" report when a build is served over plain http.
+      if (window.isSecureContext === false) {
+        const btn = document.getElementById('recordBtn');
+        if (btn) btn.disabled = true;
+        setStatus('Voice needs a secure (https) connection - please type instead');
+        return;
+      }
+
+      if (!SpeechRecognitionCtor) {
+        const btn = document.getElementById('recordBtn');
+        if (btn) btn.disabled = true;
+        setStatus('Voice input is not supported in this browser - please type instead');
+        return;
+      }
+
+      try {
+        recognition = new SpeechRecognitionCtor();
+      } catch (error) {
+        console.error('Could not create SpeechRecognition:', error);
+        const btn = document.getElementById('recordBtn');
+        if (btn) btn.disabled = true;
+        setStatus('Voice input is unavailable - please type instead');
+        return;
+      }
+
+      // continuous: the user decides when to stop, so a pause mid-sentence does
+      // not silently end the session (important for older callers who speak slowly).
+      recognition.continuous = true;
       recognition.interimResults = true;
+      recognition.maxAlternatives = 1;
       recognition.lang = 'en-AU';
 
       recognition.onstart = () => {
+        clearWatchdog();
         isRecording = true;
-        document.getElementById('recordBtn').classList.add('recording');
-        document.getElementById('recordLabel').textContent = 'Stop';
-        document.getElementById('statusText').textContent = '🔴 Recording...';
-      };
-
-      recognition.onend = () => {
-        isRecording = false;
-        document.getElementById('recordBtn').classList.remove('recording');
-        document.getElementById('recordLabel').textContent = 'Record';
-        document.getElementById('statusText').textContent = 'Ready to listen...';
+        recognitionPending = false;
+        pendingStatusMessage = '';
+        setVoiceUI('listening');
+        setStatus('🔴 Listening...');
       };
 
       recognition.onresult = (event) => {
-        let finalTranscript = '';
+        let interim = '';
         for (let i = event.resultIndex; i < event.results.length; i++) {
           const transcript = event.results[i][0].transcript;
           if (event.results[i].isFinal) {
             finalTranscript += transcript + ' ';
+          } else {
+            interim += transcript;
           }
         }
-        if (finalTranscript) {
-          document.getElementById('textInput').value = finalTranscript.trim();
-        }
+        const input = document.getElementById('textInput');
+        if (!input) return;
+        // Live preview: what is already typed + confirmed speech + the in-flight guess.
+        const parts = [baseText.trim(), (finalTranscript + interim).trim()].filter(Boolean);
+        input.value = parts.join(' ');
       };
 
       recognition.onerror = (event) => {
-        document.getElementById('statusText').textContent = `❌ Error: ${event.error}`;
+        const code = (event && event.error) || 'unknown';
+        // "aborted" is what a normal stop() looks like - never surface it.
+        if (code === 'aborted') {
+          pendingStatusMessage = '';
+        } else if (code === 'no-speech') {
+          pendingStatusMessage = "Didn't catch that - tap Record and try again";
+        } else if (code === 'not-allowed' || code === 'service-not-allowed') {
+          pendingStatusMessage = '🎤 Microphone blocked - allow mic access in your browser settings';
+        } else if (code === 'audio-capture') {
+          pendingStatusMessage = '🎤 No microphone found - check your device';
+        } else if (code === 'network') {
+          pendingStatusMessage = '❌ Network problem - the speech service is unreachable';
+        } else {
+          pendingStatusMessage = '❌ Voice error: ' + code;
+        }
+        console.warn('Speech recognition error:', code);
+        resetVoiceUI(pendingStatusMessage);
       };
-    } else {
-      document.getElementById('recordBtn').disabled = true;
-      document.getElementById('statusText').textContent = 'Speech recognition not supported';
+
+      // onend is the one guaranteed terminal event - it fires after a stop(), an
+      // abort(), an error, and an engine-initiated timeout. All cleanup and the
+      // hand-off to the chat happen here so there is exactly one exit path.
+      recognition.onend = () => {
+        const captured = finalTranscript.trim();
+        const input = document.getElementById('textInput');
+        if (input) input.value = currentInputText();
+
+        finalTranscript = '';
+        baseText = '';
+
+        resetVoiceUI(pendingStatusMessage || 'Ready to listen...');
+        pendingStatusMessage = '';
+
+        // Hand the recorded words to the chat.
+        if (captured && input && input.value.trim()) {
+          sendMessage();
+        }
+      };
     }
 
     function toggleRecording() {
-      if (!recognition) return;
+      if (!recognition) {
+        // Never leave a click unexplained.
+        const btn = document.getElementById('recordBtn');
+        if (btn) btn.disabled = true;
+        setStatus('Voice input is not available - please type your message instead');
+        return;
+      }
+
+      // A start or stop is already in flight - swallow this click rather than
+      // calling start()/stop() twice and tripping InvalidStateError.
+      if (recognitionPending) return;
+
       if (isRecording) {
-        recognition.stop();
-      } else {
+        recognitionPending = true;
+        armWatchdog();
+        try {
+          recognition.stop();
+        } catch (error) {
+          console.warn('Speech recognition stop() failed:', error);
+          try { recognition.abort(); } catch (_) { /* nothing left to abort */ }
+          resetVoiceUI('Ready to listen...');
+        }
+        return;
+      }
+
+      // Starting fresh: snapshot what is typed so speech is appended, not pasted over.
+      const input = document.getElementById('textInput');
+      baseText = input ? input.value : '';
+      finalTranscript = '';
+      pendingStatusMessage = '';
+
+      recognitionPending = true;
+      armWatchdog();
+      try {
         recognition.start();
+        setStatus('Starting microphone...');
+      } catch (error) {
+        // Chrome throws InvalidStateError when the engine is still winding down.
+        // abort() forces it back to idle so the next click can succeed.
+        console.warn('Speech recognition start() failed:', error);
+        try { recognition.abort(); } catch (_) { /* already idle */ }
+        resetVoiceUI('Ready to listen... (tap Record to try again)');
       }
     }
 
+    initSpeechRecognition();
+
     async function startSubmission() {
       try {
-        const response = await fetch('/api/v1/submission/start', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({})
-        });
-        const data = await response.json();
-        submissionId = data.submissionId;
+        const ctl = new AbortController();
+        const t = setTimeout(() => ctl.abort(), 6000);
+        let data = {};
+        try {
+          const response = await fetch('/api/v1/submission/start', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({}),
+            signal: ctl.signal
+          });
+          if (response.ok) data = await response.json();
+        } finally { clearTimeout(t); }
+        // Chat works even if the submission record could not be created.
+        submissionId = data.submissionId || null;
         conversationStarted = true;
 
         const greeting = "👋 Hello! Welcome to Tradies Hotline.\n\nI'm here to help you describe your plumbing issue so we can connect you with the right professional.\n\nTell me - what's happening with your plumbing? Feel free to share as much detail as you can.";
-        messages.push({ role: 'assistant', content: greeting });
+        // NOTE: the greeting is displayed only. It is deliberately NOT pushed into
+        // `messages`, because Gemini (v1beta) rejects any history whose first turn
+        // is a model/assistant turn: "First content should be with role 'user'".
         displayMessage('assistant', greeting);
       } catch (error) {
         console.error('Error starting submission:', error);
-        document.getElementById('statusText').textContent = '❌ Connection error';
+        conversationStarted = true; // carry on without a saved submission
       }
+    }
+
+    // Build the history sent to /api/v1/chat.
+    // Gemini v1beta requires the first turn to have role 'user', so we drop any
+    // leading assistant turns and normalise each entry to {role, content}.
+    function buildChatHistory() {
+      const firstUser = messages.findIndex(m => m && m.role === 'user');
+      if (firstUser === -1) return [];
+      return messages
+        .slice(firstUser)
+        .filter(m => m && (m.role === 'user' || m.role === 'assistant') && typeof m.content === 'string' && m.content.trim())
+        .map(m => ({ role: m.role, content: m.content }));
     }
 
     async function sendMessage() {
@@ -558,25 +750,32 @@
 
       if (!userMessage) return;
 
+      textInput.value = '';
       if (!conversationStarted) {
         await startSubmission();
       }
 
       messages.push({ role: 'user', content: userMessage });
       displayMessage('user', userMessage);
-      textInput.value = '';
 
       try {
         const response = await fetch('/api/v1/chat', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ messages, submissionId })
+          body: JSON.stringify({ messages: buildChatHistory(), submissionId })
         });
 
-        if (!response.ok) throw new Error('Chat failed');
+        if (!response.ok) {
+          // The backend returns a plain { error, details } body on failure.
+          let serverMessage = '';
+          try {
+            serverMessage = (await response.json()).error || '';
+          } catch (_) { /* non-JSON error body */ }
+          throw new Error(serverMessage || 'Chat failed');
+        }
 
         const data = await response.json();
-        messages.push(data);
+        messages.push({ role: 'assistant', content: data.content });
         displayMessage('assistant', data.content);
 
         // Auto-show form after 4-5 turns
@@ -619,21 +818,276 @@
       chatContainer.scrollTop = chatContainer.scrollHeight;
     }
 
-    function playText(text, button) {
-      if ('speechSynthesis' in window) {
-        window.speechSynthesis.cancel();
+    /* ==================================================================
+       TEXT-TO-SPEECH
+       Goal: a natural-sounding, medium-pitched male voice that reads
+       assertively, lifts on questions, and pauses like a human would.
+       ================================================================== */
 
-        const utterance = new SpeechSynthesisUtterance(text);
-        utterance.rate = 0.9; // Slightly slower for elderly users
-        utterance.pitch = 1;
-        utterance.volume = 1;
+    // --- Voice selection ----------------------------------------------
+    const TTS_MALE_HINTS = [
+      'male', 'man', 'alex', 'aaron', 'arthur', 'brian', 'bruce', 'christopher',
+      'daniel', 'david', 'eric', 'fred', 'george', 'gordon', 'guy', 'james',
+      'jamie', 'john', 'lee', 'liam', 'mark', 'matthew', 'michael', 'nathan',
+      'oliver', 'ralph', 'reed', 'rishi', 'roger', 'russell', 'ryan', 'steffan',
+      'thomas', 'tom', 'william'
+    ];
 
-        utterance.onstart = () => button.classList.add('playing');
-        utterance.onend = () => button.classList.remove('playing');
-        utterance.onerror = () => button.classList.remove('playing');
+    const TTS_FEMALE_HINTS = [
+      'female', 'woman', 'allison', 'amelie', 'ana', 'anna', 'aria', 'ava',
+      'carol', 'catherine', 'clara', 'emma', 'fiona', 'hazel', 'jenny',
+      'joanna', 'karen', 'kate', 'kathy', 'libby', 'linda', 'lisa', 'maisie',
+      'michelle', 'moira', 'natasha', 'nicky', 'samantha', 'sandy', 'sara',
+      'serena', 'shelley', 'sonia', 'susan', 'tessa', 'veena', 'victoria',
+      'zira', 'zoe'
+    ];
 
-        speechSynthesis.speak(utterance);
+    // Novelty / low-quality engines that sound obviously synthetic.
+    const TTS_ROBOTIC_HINTS = [
+      'espeak', 'zarvox', 'trinoids', 'albert', 'bahh', 'bells', 'boing',
+      'bubbles', 'cellos', 'deranged', 'hysterical', 'organ', 'whisper',
+      'bad news', 'good news', 'pipe organ', 'compact', 'novelty'
+    ];
+
+    // Markers vendors use for their newer, more human-sounding models.
+    const TTS_QUALITY_HINTS = [
+      'natural', 'neural', 'premium', 'enhanced', 'siri', 'wavenet', 'studio'
+    ];
+
+    let ttsVoice = null;          // cached winner
+    let ttsVoiceChosen = false;   // has selection run against a populated list
+
+    function scoreVoice(voice) {
+      const name = (voice.name || '').toLowerCase();
+      const uri = (voice.voiceURI || '').toLowerCase();
+      const id = name + ' ' + uri;
+      const lang = (voice.lang || '').toLowerCase().replace('_', '-');
+      let score = 0;
+
+      // English only — anything else is disqualified outright.
+      if (!lang.startsWith('en')) return -Infinity;
+
+      // Locale: this is an Australian trades service, so match the accent
+      // used by speech recognition (en-AU), then the nearest neighbours.
+      if (lang.startsWith('en-au')) score += 45;
+      else if (lang.startsWith('en-nz')) score += 28;
+      else if (lang.startsWith('en-gb')) score += 25;
+      else if (lang.startsWith('en-us')) score += 15;
+      else score += 5;
+
+      // Gender: female names are hard-excluded, male names strongly favoured.
+      // "female" is checked first because it contains the substring "male".
+      const isFemale = TTS_FEMALE_HINTS.some(h => id.includes(h));
+      if (isFemale) return -Infinity;
+      if (TTS_MALE_HINTS.some(h => id.includes(h))) score += 60;
+
+      // Quality: reward modern neural voices, punish novelty/robotic ones.
+      if (TTS_QUALITY_HINTS.some(h => id.includes(h))) score += 40;
+      if (TTS_ROBOTIC_HINTS.some(h => id.includes(h))) score -= 80;
+
+      // Legacy desktop SAPI voices (e.g. "Microsoft David Desktop") are the
+      // classic robotic sound; the newer "Microsoft ... Online (Natural)"
+      // voices already picked up the quality bonus above.
+      if (id.includes('desktop')) score -= 35;
+      if (id.includes('microsoft') && !id.includes('natural')) score -= 15;
+      if (id.includes('google') && !id.includes('natural')) score -= 10;
+
+      // Small tie-breakers.
+      if (voice.localService) score += 3;   // no network stall mid-sentence
+      if (voice.default) score += 2;
+
+      return score;
+    }
+
+    function selectVoice() {
+      let voices = [];
+      try { voices = window.speechSynthesis.getVoices() || []; } catch (e) { voices = []; }
+      if (!voices.length) return null;   // list not populated yet
+
+      let best = null;
+      let bestScore = -Infinity;
+      voices.forEach(v => {
+        const s = scoreVoice(v);
+        if (s > bestScore) { bestScore = s; best = v; }
+      });
+
+      // Fallback chain: no acceptable male/English voice scored, so take any
+      // English voice, and failing that the browser default (first entry).
+      if (!best || bestScore === -Infinity) {
+        best = voices.find(v => (v.lang || '').toLowerCase().startsWith('en-au'))
+            || voices.find(v => (v.lang || '').toLowerCase().startsWith('en'))
+            || voices.find(v => v.default)
+            || voices[0];
       }
+
+      ttsVoice = best || null;
+      ttsVoiceChosen = !!best;
+      return ttsVoice;
+    }
+
+    if ('speechSynthesis' in window) {
+      // Voice lists load asynchronously in Chrome/Edge — prime it now and
+      // re-run selection when the browser reports the list is ready.
+      selectVoice();
+      window.speechSynthesis.onvoiceschanged = () => selectVoice();
+      window.addEventListener('beforeunload', () => window.speechSynthesis.cancel());
+    }
+
+    // --- Speech shaping ------------------------------------------------
+    const TTS_BASE = { rate: 0.95, pitch: 0.85, volume: 1.0 };
+
+    // Strip emoji/pictographs so the engine doesn't announce "cross mark".
+    function cleanForSpeech(text) {
+      return String(text || '')
+        .replace(/[\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}\u{FE0F}\u{2190}-\u{21FF}\u{2B00}-\u{2BFF}]/gu, ' ')
+        .replace(/\s{2,}/g, ' ')
+        .trim();
+    }
+
+    // Break into sentence-sized chunks. Chunking gives us human pacing
+    // (real gaps between sentences) and dodges the Chrome bug where a long
+    // single utterance cuts out after ~15 seconds.
+    function buildChunks(text) {
+      // Match-based split (rather than a lookbehind) so the script still
+      // parses on older Safari builds.
+      const raw = (cleanForSpeech(text).match(/[^.!?]+[.!?]*/g) || [])
+        .map(s => s.trim())
+        .filter(Boolean);
+
+      // Decimal amounts ("$1.50", "3.5 hours") look like sentence breaks to
+      // the splitter above — stitch those fragments back together.
+      const sentences = [];
+      raw.forEach(s => {
+        const prev = sentences[sentences.length - 1];
+        if (prev && /\d\.$/.test(prev) && /^\d/.test(s)) {
+          sentences[sentences.length - 1] = prev + s;
+        } else {
+          sentences.push(s);
+        }
+      });
+
+      const chunks = [];
+      sentences.forEach(sentence => {
+        // A question mark only ever lands on the final clause, so decide
+        // the intonation once per sentence and apply it to every clause.
+        const isQuestion = /\?\s*$/.test(sentence);
+
+        // Very long sentences get split on clause boundaries so the
+        // delivery keeps breathing instead of running on.
+        const parts = sentence.length > 180
+          ? (sentence.match(/[^,;:]+[,;:]*/g) || [sentence]).map(p => p.trim()).filter(Boolean)
+          : [sentence];
+
+        parts.forEach((part, i) => {
+          const isLastPart = i === parts.length - 1;
+          chunks.push({
+            text: part,
+            isQuestion,
+            // Enquiring lift: questions rise slightly and slow a touch so
+            // they land as a genuine question rather than a flat statement.
+            pitch: isQuestion ? TTS_BASE.pitch + 0.15 : TTS_BASE.pitch,
+            rate:  isQuestion ? TTS_BASE.rate - 0.03 : TTS_BASE.rate,
+            // Beat of silence before a question — the assertive "hang on,
+            // here's what I need from you" pause. Only before the opening
+            // clause, never mid-sentence.
+            gapBefore: (isQuestion && i === 0) ? 320 : 0,
+            gapAfter: isLastPart ? 220 : 90
+          });
+        });
+      });
+
+      return chunks.length ? chunks : [{
+        text: cleanForSpeech(text), isQuestion: false,
+        pitch: TTS_BASE.pitch, rate: TTS_BASE.rate, gapBefore: 0, gapAfter: 0
+      }];
+    }
+
+    // --- Playback ------------------------------------------------------
+    let ttsRunId = 0;          // invalidates any in-flight sequence
+    let ttsActiveButton = null;
+    let ttsKeepAlive = null;
+
+    function stopSpeech() {
+      ttsRunId++;
+      if (ttsKeepAlive) { clearInterval(ttsKeepAlive); ttsKeepAlive = null; }
+      try { window.speechSynthesis.cancel(); } catch (e) {}
+      if (ttsActiveButton) ttsActiveButton.classList.remove('playing');
+      ttsActiveButton = null;
+    }
+
+    function playText(text, button) {
+      if (!('speechSynthesis' in window)) return;
+
+      // Clicking the speaker of the message that's already talking stops it.
+      const wasPlaying = button && button.classList.contains('playing');
+      stopSpeech();
+      if (wasPlaying) return;
+
+      const spoken = cleanForSpeech(text);
+      if (!spoken) return;
+
+      // Late-loading voice lists: try once more at play time.
+      if (!ttsVoiceChosen) selectVoice();
+
+      const runId = ++ttsRunId;
+      const chunks = buildChunks(spoken);
+      let index = 0;
+
+      if (button) { button.classList.add('playing'); ttsActiveButton = button; }
+
+      // Chrome silently suspends synthesis on longer reads; a periodic
+      // resume() keeps it running.
+      ttsKeepAlive = setInterval(() => {
+        if (window.speechSynthesis.speaking && !window.speechSynthesis.paused) {
+          try { window.speechSynthesis.resume(); } catch (e) {}
+        }
+      }, 5000);
+
+      const finish = () => {
+        if (runId !== ttsRunId) return;
+        if (ttsKeepAlive) { clearInterval(ttsKeepAlive); ttsKeepAlive = null; }
+        if (button) button.classList.remove('playing');
+        if (ttsActiveButton === button) ttsActiveButton = null;
+      };
+
+      const speakNext = () => {
+        if (runId !== ttsRunId) return;             // superseded or stopped
+        if (index >= chunks.length) return finish();
+
+        const chunk = chunks[index++];
+        const utterance = new SpeechSynthesisUtterance(chunk.text);
+
+        if (ttsVoice) {
+          utterance.voice = ttsVoice;
+          utterance.lang = ttsVoice.lang;           // some engines need both
+        } else {
+          utterance.lang = 'en-AU';                 // fallback: at least the accent
+        }
+
+        utterance.rate = chunk.rate;
+        utterance.pitch = chunk.pitch;
+        utterance.volume = TTS_BASE.volume;
+
+        utterance.onend = () => {
+          if (runId !== ttsRunId) return;
+          setTimeout(speakNext, chunk.gapAfter);
+        };
+        utterance.onerror = () => {
+          if (runId !== ttsRunId) return;
+          // Don't abandon the whole message on one bad chunk.
+          setTimeout(speakNext, 60);
+        };
+
+        const start = () => {
+          if (runId !== ttsRunId) return;
+          try { window.speechSynthesis.speak(utterance); }
+          catch (e) { finish(); }
+        };
+
+        chunk.gapBefore ? setTimeout(start, chunk.gapBefore) : start();
+      };
+
+      speakNext();
     }
 
     async function handleFileUpload(event) {

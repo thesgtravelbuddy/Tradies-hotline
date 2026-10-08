@@ -705,13 +705,20 @@
 
     async function startSubmission() {
       try {
-        const response = await fetch('/api/v1/submission/start', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({})
-        });
-        const data = await response.json();
-        submissionId = data.submissionId;
+        const ctl = new AbortController();
+        const t = setTimeout(() => ctl.abort(), 6000);
+        let data = {};
+        try {
+          const response = await fetch('/api/v1/submission/start', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({}),
+            signal: ctl.signal
+          });
+          if (response.ok) data = await response.json();
+        } finally { clearTimeout(t); }
+        // Chat works even if the submission record could not be created.
+        submissionId = data.submissionId || null;
         conversationStarted = true;
 
         const greeting = "👋 Hello! Welcome to Tradies Hotline.\n\nI'm here to help you describe your plumbing issue so we can connect you with the right professional.\n\nTell me - what's happening with your plumbing? Feel free to share as much detail as you can.";
@@ -721,7 +728,7 @@
         displayMessage('assistant', greeting);
       } catch (error) {
         console.error('Error starting submission:', error);
-        document.getElementById('statusText').textContent = '❌ Connection error';
+        conversationStarted = true; // carry on without a saved submission
       }
     }
 
@@ -743,13 +750,13 @@
 
       if (!userMessage) return;
 
+      textInput.value = '';
       if (!conversationStarted) {
         await startSubmission();
       }
 
       messages.push({ role: 'user', content: userMessage });
       displayMessage('user', userMessage);
-      textInput.value = '';
 
       try {
         const response = await fetch('/api/v1/chat', {

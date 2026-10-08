@@ -20,7 +20,8 @@ const app = express();
 app.use(cors());
 // Vercel: run DB init once before handling any request (see ensureInitialized).
 app.use(async (req, res, next) => {
-  if (process.env.VERCEL) await ensureInitialized();
+  // Never block a request on DB init (a slow DB must not hang health/chat).
+  if (process.env.VERCEL) ensureInitialized();
   next();
 });
 app.use(express.json({ limit: '50mb' }));
@@ -29,7 +30,7 @@ app.use(express.static('.'));
 
 // Serve index.html for root path
 app.get('/', (req, res) => {
-  res.sendFile(join(__dirname, 'index.html'));
+  res.sendFile(join(__dirname, 'public', 'index.html'));
 });
 
 // Serve admin.html
@@ -65,7 +66,9 @@ function withTimeout(promise, ms, label = 'Groq request') {
 
 const pool = new pg.Pool({
   connectionString: process.env.DATABASE_URL,
-  ssl: { rejectUnauthorized: false }
+  ssl: { rejectUnauthorized: false },
+  connectionTimeoutMillis: 8000,
+  max: 3
 });
 
 const s3 = new AWS.S3({
@@ -789,6 +792,16 @@ app.get('/api/v1/health', (req, res) => {
     groq: process.env.GROQ_API_KEY ? 'configured' : 'not configured',
     spaces: process.env.DO_SPACES_BUCKET ? 'configured' : 'not configured'
   });
+});
+
+// DB health: surfaces the real connection error (message only) for diagnosis.
+app.get('/api/v1/health/db', async (req, res) => {
+  try {
+    const r = await pool.query('SELECT COUNT(*)::int AS admins FROM admin_users');
+    res.json({ ok: true, admins: r.rows[0].admins });
+  } catch (e) {
+    res.status(503).json({ ok: false, error: e.message, code: e.code });
+  }
 });
 
 // Deep health check: actually exercises the Groq credential instead of only
