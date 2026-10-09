@@ -10,6 +10,7 @@ import Stripe from 'stripe';
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
 import dotenv from 'dotenv';
+import { readFileSync, existsSync } from 'node:fs';
 
 dotenv.config();
 
@@ -82,43 +83,95 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '');
 
 const JWT_SECRET = process.env.JWT_SECRET || 'dev-secret-key-change-in-production';
 
-// Build AI system prompt with knowledge base context
-async function buildAIPrompt() {
+// ---- Knowledge repository (multi-trade) ------------------------------------
+let kbCache = { at: 0, rows: [] };
+const STOP = new Set(('a an the and or but of to in on at for with my our is are was were be been it its this that these those i we you me ' +
+  'have has had do does did not no yes just very really so up down out over under again still keep keeps can cant cannot will wont now then ' +
+  'there here what when where how why which who very got get getting some any all from by as if than too also').split(' '));
+
+function tokens(text) {
+  return String(text || '').toLowerCase().replace(/[^a-z0-9\s]/g, ' ').split(/\s+/)
+    .filter(w => w.length > 2 && !STOP.has(w)).map(w => w.replace(/(ing|ed|es|s)$/, ''));
+}
+
+async function loadKnowledge() {
+  if (Date.now() - kbCache.at < 5 * 60 * 1000 && kbCache.rows.length) return kbCache.rows;
+  const r = await pool.query('SELECT issue_name, trade, data FROM knowledge_base WHERE active = true AND data IS NOT NULL');
+  const rows = r.rows.map(x => {
+    const d = x.data || {};
+    const phrases = [...(d.customer_phrases || []), ...(d.trigger_keywords || [])];
+    return { ...d, issue_name: x.issue_name, trade: x.trade,
+      _name: new Set(tokens(x.issue_name + ' ' + phrases.join(' '))),
+      _bag: new Set(tokens((d.symptoms || []).join(' '))),
+      _phrases: phrases.map(p => new Set(tokens(p))).filter(s => s.size >= 2) };
+  });
+  // Inverse document frequency: rare words ("gas", "possum") count for more than common ones ("water", "house").
+  const df = new Map();
+  for (const e of rows) for (const w of new Set([...e._name, ...e._bag])) df.set(w, (df.get(w) || 0) + 1);
+  const N = rows.length || 1;
+  const idf = (w) => Math.log(1 + N / (df.get(w) || 1));
+  kbCache = { at: Date.now(), rows, idf };
+  return rows;
+}
+
+function pickRelevant(entries, conversationText, n = 3) {
+  const q = new Set(tokens(conversationText));
+  if (!q.size) return [];
+  const idf = kbCache.idf || (() => 1);
+  const scored = entries.map(e => {
+    let score = 0;
+    for (const w of q) {
+      if (e._name.has(w)) score += 3 * idf(w);
+      else if (e._bag.has(w)) score += 1 * idf(w);
+    }
+    // Whole-phrase boost: most words of a known customer phrase appear in what they said.
+    for (const ph of e._phrases) {
+      let hit = 0;
+      for (const w of ph) if (q.has(w)) hit++;
+      const ratio = hit / ph.size;
+      if (ratio >= 0.66) score += 6 * ratio;
+    }
+    return { e, score };
+  }).filter(x => x.score >= 3).sort((a, b) => b.score - a.score).slice(0, n);
+  const top = scored.length ? scored[0].score : 0;
+  return scored.filter(x => x.score >= top * 0.6).map(x => x.e);
+}
+
+function fmtEntry(e) {
+  const all = e.questions || [];
+  const pri = all.filter(x => x.priority);
+  const rest = all.filter(x => !x.priority);
+  const line = (x, i) => `  ${i + 1}. ${x.q}  [why: ${x.why}]`;
+  const qs = [...pri, ...rest].slice(0, 9).map(line).join('\n');
+  const safety = e.safety_instruction ? `\nIf a danger sign is mentioned, say (in your own gentle words): ${e.safety_instruction}` : '';
+  return `JOB TYPE: ${e.issue_name} (${e.trade}) - usual urgency: ${e.urgency_default}\n` +
+    `Urgent/dangerous signs: ${(e.emergency_indicators || []).join('; ') || 'none noted'}${safety}\n` +
+    `Questions that help the tradesperson (the first ${pri.length || 3} matter most; ask only those not yet answered, one at a time):\n${qs}\n` +
+    `Facts needed to quote: ${(e.quote_info_needed || []).join('; ')}\n` +
+    `Useful photos to ask for: ${(e.photo_requests || []).join('; ')}`;
+}
+
+// Build AI system prompt from the repository, tailored to what the customer has said so far
+async function buildAIPrompt(conversationText = '') {
+  const base = `You are the intake assistant for Tradies Hotline, an Australian service that connects customers with tradespeople (plumbers, electricians, carpenters, roofers, appliance repairers, pest controllers and more).
+
+Your job:
+1. Work out which kind of job this is from what the customer says.
+2. Ask the questions a tradesperson would need answered to quote and schedule the job, one at a time, skipping anything already answered.
+3. Be warm and reassuring; customers may be stressed or elderly.
+4. NEVER diagnose, suggest causes, or give repair instructions. The only advice allowed is safety: if there are signs of danger (gas smell, sparking or burning smell, water near electrics, sewage overflow, structural collapse, tree on power lines) tell them plainly to call 000 or the gas emergency line, and to stay safe, then carry on gathering details only if they are safe.
+5. When you have the main facts (what, where, how long, how bad, access, and anything quote-relevant), say you have what the tradesperson needs and invite them to tap the Next button.`;
   try {
-    const result = await pool.query('SELECT * FROM knowledge_base WHERE active = true LIMIT 20');
-    const kbEntries = result.rows;
-
-    const kbContext = kbEntries.map(entry =>
-      `- ${entry.issue_name}: ${entry.symptoms} → Common causes: ${entry.causes}`
-    ).join('\n');
-
-    return `You are a helpful assistant for Tradies Hotline, connecting customers with tradesman.
-
-Your job is to:
-1. Ask clear, natural questions about their plumbing issue
-2. Be empathetic - customers may be stressed
-3. Gather useful info for tradsman diagnosis (location, severity, duration, damage, water type)
-4. DO NOT diagnose or recommend solutions
-5. DO NOT suggest plumbing repairs
-
-Common plumbing issues to reference:
-${kbContext}
-
-Key details to gather:
-- WHERE: exact location (kitchen, bathroom, ceiling, etc.)
-- WHAT: what's happening (leak, no water, drain, noise, etc.)
-- WHEN: duration (today, days ago, ongoing)
-- HOW MUCH: severity (dripping, flowing, gushing)
-- WHAT TYPE: hot, cold, both, discolored, smelly
-- DAMAGE: staining, mold, structural damage
-- ATTEMPTS: what they've tried (plunger, drain cleaner)
-- BUILDING: age, type, tenant vs owner
-- ACCESS: can tradsman easily access
-
-Ask follow-up questions based on their answers. Keep conversation natural and friendly.`;
+    const rows = await loadKnowledge();
+    const hits = pickRelevant(rows, conversationText);
+    if (hits.length) {
+      return `${base}\n\nRELEVANT KNOWLEDGE (background only, never read out as a list or shown to the customer):\n\n${hits.map(fmtEntry).join('\n\n')}`;
+    }
+    const trades = [...new Set(rows.map(r => r.trade))].join(', ');
+    return `${base}\n\nThe job type is not yet clear. Ask one simple question to find out what is wrong and where in the house. Trades we cover: ${trades || 'plumbing, electrical, carpentry, roofing, appliances, pest control'}.`;
   } catch (error) {
-    console.error('Error building AI prompt:', error);
-    return 'You are a helpful plumbing intake assistant. Ask clear questions about their issue.';
+    console.error('Error building AI prompt:', error.message);
+    return `${base}\n\n(Knowledge repository unavailable; ask general helpful intake questions.)`;
   }
 }
 
@@ -262,6 +315,54 @@ async function seedKnowledgeBase() {
   }
 }
 
+// Add repository columns and load data/knowledge.json (idempotent, safe to run on every start)
+async function importKnowledgeRepository() {
+  try {
+    await pool.query(`
+      ALTER TABLE knowledge_base ALTER COLUMN issue_name TYPE VARCHAR(200);
+      ALTER TABLE knowledge_base ALTER COLUMN causes DROP NOT NULL;
+      ALTER TABLE knowledge_base ADD COLUMN IF NOT EXISTS trade VARCHAR(60);
+      ALTER TABLE knowledge_base ADD COLUMN IF NOT EXISTS data JSONB;
+      ALTER TABLE knowledge_base ADD COLUMN IF NOT EXISTS reviewed BOOLEAN DEFAULT false;
+      CREATE UNIQUE INDEX IF NOT EXISTS uq_kb_trade_issue ON knowledge_base(trade, issue_name) WHERE trade IS NOT NULL;
+    `);
+    const file = join(__dirname, 'data', 'knowledge.json');
+    if (!existsSync(file)) return;
+    const entries = JSON.parse(readFileSync(file, 'utf-8'));
+    await pool.query(`
+      INSERT INTO knowledge_base (issue_name, trade, symptoms, causes, emergency_indicators, suggested_questions, data, reviewed)
+      SELECT e->>'issue_name', e->>'trade',
+        (SELECT COALESCE(string_agg(x, '; '), '') FROM jsonb_array_elements_text(e->'symptoms') x),
+        (SELECT COALESCE(string_agg(x, '; '), '') FROM jsonb_array_elements_text(e->'likely_causes') x),
+        (SELECT COALESCE(string_agg(x, '; '), '') FROM jsonb_array_elements_text(e->'emergency_indicators') x),
+        (SELECT COALESCE(string_agg(q->>'q', ' '), '') FROM jsonb_array_elements(e->'questions') q),
+        e, COALESCE((e->>'reviewed')::boolean, false)
+      FROM jsonb_array_elements($1::jsonb) e
+      ON CONFLICT (trade, issue_name) WHERE trade IS NOT NULL
+      DO UPDATE SET symptoms = EXCLUDED.symptoms, causes = EXCLUDED.causes,
+        emergency_indicators = EXCLUDED.emergency_indicators, suggested_questions = EXCLUDED.suggested_questions,
+        data = EXCLUDED.data
+      WHERE knowledge_base.reviewed = false
+    `, [JSON.stringify(entries)]);
+    // Retire earlier unreviewed draft rows that the current file no longer contains.
+    await pool.query(`
+      UPDATE knowledge_base SET active = false
+      WHERE trade IS NOT NULL AND reviewed = false
+        AND (trade, issue_name) NOT IN (SELECT e->>'trade', e->>'issue_name' FROM jsonb_array_elements($1::jsonb) e)
+    `, [JSON.stringify(entries)]);
+    // Re-activate rows that are in the file (in case they were retired earlier).
+    await pool.query(`
+      UPDATE knowledge_base SET active = true
+      WHERE trade IS NOT NULL AND reviewed = false
+        AND (trade, issue_name) IN (SELECT e->>'trade', e->>'issue_name' FROM jsonb_array_elements($1::jsonb) e)
+    `, [JSON.stringify(entries)]);
+    kbCache = { at: 0, rows: [] };
+    console.log(`Knowledge repository loaded: ${entries.length} entries`);
+  } catch (error) {
+    console.error('Knowledge repository import error:', error.message);
+  }
+}
+
 // Seed default admin user if none exist
 async function seedAdminUser() {
   try {
@@ -350,7 +451,7 @@ app.post('/api/v1/chat', async (req, res) => {
     }
 
     // Get AI prompt with knowledge base
-    const systemPrompt = await buildAIPrompt();
+    const systemPrompt = await buildAIPrompt(history.filter(m => m.role === 'user').slice(-6).map(m => m.content).join(' '));
 
     // Groq speaks the OpenAI format: a flat messages array of {role, content},
     // with the knowledge-base grounding carried as a leading system message
@@ -883,6 +984,14 @@ app.get('/api/v1/health', (req, res) => {
   });
 });
 
+// Repository size by trade (public, counts only)
+app.get('/api/v1/knowledge/stats', async (req, res) => {
+  try {
+    const r = await pool.query("SELECT COALESCE(trade,'(legacy)') AS trade, COUNT(*)::int AS entries, SUM(jsonb_array_length(COALESCE(data->'questions','[]'::jsonb)))::int AS questions FROM knowledge_base WHERE active = true GROUP BY 1 ORDER BY 2 DESC");
+    res.json({ total: r.rows.reduce((a, x) => a + x.entries, 0), byTrade: r.rows });
+  } catch (e) { res.status(503).json({ error: e.message }); }
+});
+
 // DB health: surfaces the real connection error (message only) for diagnosis.
 app.get('/api/v1/health/db', async (req, res) => {
   try {
@@ -946,6 +1055,7 @@ function ensureInitialized() {
     initPromise = (async () => {
       await initializeDatabase();
       await seedKnowledgeBase();
+      await importKnowledgeRepository();
       await seedAdminUser();
     })().catch((err) => {
       console.error('Startup init failed:', err);
