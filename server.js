@@ -3,7 +3,7 @@ import cors from 'cors';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import pg from 'pg';
-import Groq from 'groq-sdk';
+import Groq, { toFile } from 'groq-sdk';
 import axios from 'axios';
 import AWS from 'aws-sdk';
 import Stripe from 'stripe';
@@ -355,8 +355,14 @@ app.post('/api/v1/chat', async (req, res) => {
     // Groq speaks the OpenAI format: a flat messages array of {role, content},
     // with the knowledge-base grounding carried as a leading system message
     // instead of Gemini's separate systemInstruction field.
+    const STYLE = 'STYLE RULES (very important): The customer is often elderly and on a mobile phone. ' +
+      'Reply in plain, friendly Australian English using simple everyday words. ' +
+      'Ask exactly ONE short question at a time (maximum 2 short sentences in total). ' +
+      'Never use lists, bullet points, numbering, markdown, bold text, headings or emojis. ' +
+      'Do not diagnose or give repair instructions; just gather useful facts for the tradesperson.';
     const groqMessages = [
       { role: 'system', content: systemPrompt },
+      { role: 'system', content: STYLE },
       ...history.map(msg => ({
         role: msg.role === 'user' ? 'user' : 'assistant',
         content: msg.content.trim()
@@ -408,6 +414,89 @@ app.post('/api/v1/chat', async (req, res) => {
       error: 'Failed to process chat',
       details: error.message
     });
+  }
+});
+
+// Speech-to-text (works on every phone browser; replaces the unreliable Web Speech API)
+app.post('/api/v1/transcribe', async (req, res) => {
+  try {
+    const { audio, mimeType } = req.body || {};
+    if (!audio || typeof audio !== 'string') {
+      return res.status(400).json({ error: 'audio is required' });
+    }
+    if (!process.env.GROQ_API_KEY) {
+      return res.status(500).json({ error: 'Groq API key not configured' });
+    }
+    const b64 = audio.includes(',') ? audio.split(',')[1] : audio;
+    const buf = Buffer.from(b64, 'base64');
+    if (buf.length < 800) {
+      return res.json({ text: '' });
+    }
+    const type = (mimeType || 'audio/webm').split(';')[0];
+    const ext = type.includes('mp4') || type.includes('m4a') ? 'm4a'
+      : type.includes('ogg') ? 'ogg'
+      : type.includes('wav') ? 'wav'
+      : type.includes('mpeg') ? 'mp3'
+      : 'webm';
+    const file = await toFile(buf, `speech.${ext}`, { type });
+    const result = await withTimeout(
+      groq.audio.transcriptions.create({
+        file,
+        model: process.env.GROQ_STT_MODEL || 'whisper-large-v3-turbo',
+        language: 'en',
+        temperature: 0
+      }),
+      25000,
+      'Transcription'
+    );
+    res.json({ text: (result.text || '').trim() });
+  } catch (error) {
+    console.error('Transcribe error:', error.message || error);
+    res.status(500).json({ error: 'Could not transcribe', details: error.message });
+  }
+});
+
+// Plain-language summary of the conversation for the customer
+app.post('/api/v1/summary', async (req, res) => {
+  try {
+    const { messages } = req.body || {};
+    if (!Array.isArray(messages) || messages.length === 0) {
+      return res.status(400).json({ error: 'messages must be a non-empty array' });
+    }
+    const transcript = messages
+      .filter(m => m && (m.role === 'user' || m.role === 'assistant') && typeof m.content === 'string')
+      .map(m => `${m.role === 'user' ? 'Customer' : 'Assistant'}: ${m.content}`)
+      .join('\n')
+      .slice(0, 12000);
+
+    const result = await withTimeout(
+      groq.chat.completions.create({
+        model: GROQ_MODEL,
+        messages: [
+          {
+            role: 'system',
+            content:
+              'You write a short summary of a customer\'s home trade problem for an elderly person to read on a phone. ' +
+              'Use very simple everyday words and short sentences. Do not diagnose. Do not invent details; if something is unknown say "not said". ' +
+              'Reply with ONLY JSON like {"headline":"...","points":[{"label":"The problem","text":"..."},{"label":"Where","text":"..."},{"label":"How long","text":"..."},{"label":"How urgent","text":"..."},{"label":"Photos","text":"..."}]}. ' +
+              'Headline: one short sentence. Each text: at most 12 words. Omit a point only if truly nothing is known.'
+          },
+          { role: 'user', content: transcript }
+        ]
+      }),
+      GROQ_TIMEOUT_MS,
+      'Summary'
+    );
+    const raw = result.choices?.[0]?.message?.content || '';
+    let parsed = null;
+    try { parsed = JSON.parse(raw.match(/\{[\s\S]*\}/)[0]); } catch (_) { /* fall through */ }
+    if (parsed && Array.isArray(parsed.points)) {
+      return res.json({ headline: String(parsed.headline || ''), points: parsed.points.slice(0, 6) });
+    }
+    res.json({ headline: raw.trim().slice(0, 300), points: [] });
+  } catch (error) {
+    console.error('Summary error:', error.message || error);
+    res.status(500).json({ error: 'Could not build summary', details: error.message });
   }
 });
 

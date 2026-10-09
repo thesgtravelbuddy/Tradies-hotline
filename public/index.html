@@ -1,1194 +1,681 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en-AU">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Tradies Hotline - Voice Assistant</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0b4f8a">
+  <title>Tradies Hotline</title>
   <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
+    :root {
+      --ink: #14213d;
+      --muted: #44546a;
+      --blue: #0b5cad;
+      --blue-dark: #08457f;
+      --green: #1a7f37;
+      --green-dark: #136428;
+      --red: #c62828;
+      --amber: #f4b400;
+      --bg: #eef3f9;
+      --card: #ffffff;
+      --line: #b8c6d8;
     }
-
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { -webkit-text-size-adjust: 100%; }
     body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+      font-size: 22px;
+      line-height: 1.45;
+      color: var(--ink);
+      background: var(--bg);
       min-height: 100vh;
-      padding: 20px;
+      min-height: 100dvh;
     }
-
-    .container {
-      max-width: 800px;
-      margin: 0 auto;
-      background: white;
-      border-radius: 16px;
-      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-      display: flex;
-      flex-direction: column;
-      height: 90vh;
-      max-height: 900px;
-    }
-
-    .header {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      color: white;
-      padding: 20px;
+    .app { max-width: 720px; margin: 0 auto; min-height: 100dvh; display: flex; flex-direction: column; }
+    header {
+      background: var(--blue);
+      color: #fff;
+      padding: 16px 18px;
       text-align: center;
-      border-radius: 16px 16px 0 0;
+      position: sticky; top: 0; z-index: 5;
     }
+    header h1 { font-size: 30px; font-weight: 800; }
+    header p { font-size: 20px; opacity: .95; }
 
-    .header h1 {
-      font-size: 28px;
-      margin-bottom: 8px;
-    }
+    main { flex: 1; padding: 16px 14px 8px; scroll-margin-top: 100px; display: flex; flex-direction: column; gap: 16px; }
+    .hidden { display: none !important; }
 
-    .header p {
-      font-size: 14px;
-      opacity: 0.9;
-    }
-
-    .content {
-      flex: 1;
-      overflow-y: auto;
-      padding: 20px;
-      display: flex;
-      flex-direction: column;
-      gap: 16px;
-    }
-
-    .chat-container {
-      flex: 1;
-      overflow-y: auto;
-      display: flex;
-      flex-direction: column;
-      gap: 16px;
-      padding-bottom: 16px;
+    /* chat */
+    .bubble {
+      scroll-margin-top: 110px;
+      padding: 16px 18px;
+      border-radius: 18px;
+      font-size: 24px;
+      line-height: 1.4;
       white-space: pre-wrap;
       word-wrap: break-word;
+      max-width: 94%;
     }
-
-    .message {
-      display: flex;
-      gap: 12px;
-      animation: slideIn 0.3s ease-out;
-    }
-
-    @keyframes slideIn {
-      from {
-        opacity: 0;
-        transform: translateY(10px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-
-    .message.user {
-      justify-content: flex-end;
-    }
-
-    .message-bubble {
-      max-width: 75%;
-      padding: 12px 16px;
-      border-radius: 12px;
-      line-height: 1.6;
-      font-size: 15px;
-    }
-
-    .message.assistant .message-bubble {
-      background: #f0f0f0;
-      color: #333;
-      position: relative;
-    }
-
-    .message.user .message-bubble {
-      background: #667eea;
-      color: white;
-    }
-
-    .message-bubble .speaker-btn {
-      background: none;
-      border: none;
-      cursor: pointer;
-      font-size: 18px;
-      margin-left: 8px;
-      padding: 4px;
-      vertical-align: middle;
-    }
-
-    .empty-state {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      color: #999;
-      text-align: center;
-      gap: 16px;
-    }
-
-    .empty-state-icon {
-      font-size: 48px;
-    }
-
-    .input-section {
-      border-top: 1px solid #eee;
-      padding: 16px;
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-    }
-
-    .button-group {
-      display: flex;
-      gap: 12px;
-      flex-wrap: wrap;
-    }
+    .bot { background: var(--card); border: 2px solid var(--line); align-self: flex-start; }
+    .me { background: var(--blue); color: #fff; align-self: flex-end; }
+    .thinking { color: var(--muted); font-style: italic; }
+    .who { font-size: 18px; font-weight: 700; color: var(--muted); margin-bottom: 4px; }
+    .me .who { color: #dbe9fa; }
 
     button {
-      padding: 12px 16px;
-      border: none;
-      border-radius: 8px;
-      font-size: 14px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-    }
-
-    .btn-voice {
-      background: #667eea;
-      color: white;
-      flex: 1;
-      min-width: 140px;
-    }
-
-    .btn-voice:hover:not(:disabled) {
-      background: #5568d3;
-      transform: translateY(-2px);
-      box-shadow: 0 8px 16px rgba(102, 126, 234, 0.3);
-    }
-
-    .btn-voice:disabled {
-      background: #999;
-      cursor: not-allowed;
-    }
-
-    .btn-voice.recording {
-      background: #e74c3c;
-      animation: pulse 1.5s infinite;
-    }
-
-    @keyframes pulse {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0.7; }
-    }
-
-    .btn-upload {
-      background: #48bb78;
-      color: white;
-      flex: 1;
-      min-width: 120px;
-    }
-
-    .btn-upload:hover {
-      background: #38a169;
-    }
-
-    .btn-send {
-      background: #667eea;
-      color: white;
-      width: 100%;
-    }
-
-    .btn-send:hover:not(:disabled) {
-      background: #5568d3;
-    }
-
-    .input-text {
-      width: 100%;
-      padding: 12px;
-      border: 1px solid #ddd;
-      border-radius: 8px;
-      font-size: 14px;
       font-family: inherit;
-      resize: none;
-      max-height: 100px;
-    }
-
-    .input-text:focus {
-      outline: none;
-      border-color: #667eea;
-      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-    }
-
-    .status {
-      font-size: 12px;
-      color: #666;
-      text-align: center;
-    }
-
-    .recording-indicator {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      color: #e74c3c;
-      font-weight: 600;
-    }
-
-    .file-input {
-      display: none;
-    }
-
-    .form-section {
-      display: none;
-      padding: 16px;
-      background: #f9f9f9;
-      border-radius: 8px;
-      gap: 12px;
-      flex-direction: column;
-    }
-
-    .form-section.active {
-      display: flex;
-    }
-
-    .form-group {
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-    }
-
-    .form-group label {
-      font-size: 13px;
-      font-weight: 600;
-      color: #333;
-    }
-
-    .form-group input, .form-group select {
-      padding: 10px;
-      border: 1px solid #ddd;
-      border-radius: 6px;
-      font-size: 14px;
-      font-family: inherit;
-    }
-
-    .form-group input:focus, .form-group select:focus {
-      outline: none;
-      border-color: #667eea;
-      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-    }
-
-    .form-group small {
-      font-size: 12px;
-      color: #999;
-    }
-
-    .error-message {
-      padding: 12px;
-      background: #f8d7da;
-      border: 1px solid #f5c6cb;
-      border-radius: 8px;
-      color: #721c24;
-      font-size: 13px;
-      display: none;
-    }
-
-    .error-message.active {
-      display: block;
-    }
-
-    .success-screen {
-      display: none;
-      text-align: center;
-      gap: 16px;
-      flex-direction: column;
-    }
-
-    .success-screen.active {
-      display: flex;
-    }
-
-    .tradsman-card {
-      background: white;
-      border: 2px solid #667eea;
-      border-radius: 8px;
-      padding: 16px;
-      text-align: center;
-      gap: 12px;
-      display: flex;
-      flex-direction: column;
-    }
-
-    .tradsman-logo {
-      width: 80px;
-      height: 80px;
-      margin: 0 auto;
-      border-radius: 8px;
-      object-fit: contain;
-      background: #f0f0f0;
-    }
-
-    .resources-list {
-      margin-top: 16px;
-      padding-top: 16px;
-      border-top: 1px solid #eee;
-      gap: 8px;
-      flex-direction: column;
-      display: flex;
-    }
-
-    .resource-item {
-      padding: 8px;
-      background: #f9f9f9;
-      border-left: 3px solid #667eea;
-      font-size: 12px;
-      line-height: 1.4;
-    }
-
-    .resource-link {
-      color: #667eea;
-      text-decoration: none;
-      font-weight: 600;
-    }
-
-    .resource-link:hover {
-      text-decoration: underline;
-    }
-
-    .tts-controls {
-      display: flex;
-      gap: 8px;
-      margin-top: 8px;
-    }
-
-    .tts-btn {
-      background: none;
-      border: 1px solid #667eea;
-      color: #667eea;
-      padding: 6px 12px;
-      border-radius: 4px;
-      font-size: 12px;
+      font-size: 24px;
+      font-weight: 800;
+      border: 0;
+      border-radius: 16px;
+      min-height: 68px;
+      padding: 12px 18px;
       cursor: pointer;
-      transition: all 0.2s;
+      display: flex; align-items: center; justify-content: center; gap: 10px;
+      width: 100%;
+      -webkit-tap-highlight-color: transparent;
     }
+    button:active { transform: scale(.98); }
+    button:disabled { opacity: .5; cursor: not-allowed; }
+    button:focus-visible, textarea:focus-visible, input:focus-visible, select:focus-visible {
+      outline: 4px solid var(--amber); outline-offset: 2px;
+    }
+    .btn-speak { background: #e3effc; color: var(--blue-dark); border: 2px solid var(--blue); margin-top: 12px; min-height: 60px; font-size: 22px; }
+    .btn-speak.on { background: var(--amber); color: #000; border-color: #8a6500; }
 
-    .tts-btn:hover {
-      background: #667eea;
-      color: white;
+    /* input dock */
+    .dock {
+      background: var(--card);
+      border-top: 3px solid var(--blue);
+      padding: 12px 14px calc(14px + env(safe-area-inset-bottom));
+      display: flex; flex-direction: column; gap: 12px;
+      box-shadow: 0 -6px 18px rgba(0,0,0,.12);
     }
+    textarea {
+      width: 100%;
+      min-height: 130px;
+      max-height: 40vh;
+      font: inherit; font-size: 26px; line-height: 1.35;
+      padding: 14px;
+      border: 3px solid var(--blue);
+      border-radius: 16px;
+      resize: vertical;
+      color: var(--ink);
+    }
+    textarea::placeholder { color: #6b7a90; }
+    .btn-mic { background: var(--blue); color: #fff; min-height: 84px; font-size: 28px; }
+    .btn-mic.rec { background: var(--red); animation: pulse 1.2s infinite; }
+    .btn-mic.busy { background: var(--muted); }
+    @keyframes pulse { 50% { opacity: .75; } }
+    .btn-send { background: var(--green); color: #fff; min-height: 84px; font-size: 28px; }
+    .btn-send:hover:not(:disabled) { background: var(--green-dark); }
+    .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .btn-light { background: #fff; color: var(--blue-dark); border: 3px solid var(--blue); font-size: 21px; }
+    .btn-done { background: #fff4d6; color: #5a4000; border: 3px solid #b88700; font-size: 21px; }
+    .status { text-align: center; font-size: 21px; font-weight: 700; color: var(--muted); min-height: 30px; }
+    .status.err { color: var(--red); }
+    .status.rec { color: var(--red); }
 
-    .tts-btn.playing {
-      background: #667eea;
-      color: white;
+    /* summary + form */
+    .card { background: var(--card); border: 2px solid var(--line); border-radius: 18px; padding: 18px; }
+    h2 { font-size: 30px; margin-bottom: 8px; }
+    .headline { font-size: 26px; font-weight: 800; margin-bottom: 12px; }
+    .point { padding: 12px 0; border-top: 2px solid #e1e8f1; font-size: 24px; }
+    .point b { display: block; font-size: 19px; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; }
+    label { display: block; font-size: 22px; font-weight: 800; margin: 14px 0 6px; }
+    label small { display: block; font-weight: 500; color: var(--muted); font-size: 18px; }
+    input, select {
+      width: 100%; font: inherit; font-size: 24px; padding: 14px;
+      border: 3px solid var(--line); border-radius: 14px; background: #fff; color: var(--ink);
     }
+    .btn-primary { background: var(--green); color: #fff; margin-top: 18px; min-height: 84px; font-size: 28px; }
+    .btn-secondary { background: #fff; color: var(--blue-dark); border: 3px solid var(--blue); margin-top: 12px; }
+    .form-error { background: #fde7e7; color: #7a1010; border: 2px solid var(--red); padding: 12px; border-radius: 12px; margin-top: 12px; font-weight: 700; }
+    .big-tick { font-size: 90px; text-align: center; }
+    .center { text-align: center; }
+    .steps { display: flex; align-items: stretch; gap: 2px; padding: 12px 8px 4px; max-width: 720px; margin: 0 auto; width: 100%; }
+    .arrow { align-self: center; font-size: 26px; font-weight: 900; color: var(--blue); flex: 0 0 auto; }
+    .step { flex: 1; text-align: center; padding: 10px 4px; border-radius: 14px; background: #dfe7f2; color: var(--muted); font-size: 17px; font-weight: 800; line-height: 1.2; border: 3px solid transparent; }
+    .step b { display: block; font-size: 28px; }
+    .step.active { background: var(--blue); color: #fff; border-color: var(--blue-dark); }
+    .step.done { background: #d6f0dd; color: #0d5a25; }
+    .step.done b::after { content: ' ✓'; }
+    .choose { display: flex; flex-direction: column; gap: 16px; margin-top: 14px; }
+    .btn-choose { min-height: 120px; font-size: 34px; flex-direction: column; gap: 4px; background: var(--blue); color: #fff; }
+    .btn-choose small { font-size: 21px; font-weight: 600; opacity: .95; }
+    .btn-choose.alt { background: #fff; color: var(--blue-dark); border: 4px solid var(--blue); }
+    .prompt { font-size: 28px; line-height: 1.4; font-weight: 600; margin-top: 6px; white-space: pre-wrap; }
+    .prompt.thinking { color: var(--muted); font-style: italic; font-weight: 500; }
+    .btn-link { background: none; color: var(--muted); font-size: 19px; font-weight: 700; min-height: 48px; text-decoration: underline; }
+    footer { text-align: center; color: var(--muted); font-size: 16px; padding: 10px; }
   </style>
 </head>
 <body>
-  <div class="container">
-    <div class="header">
-      <h1>🔧 Tradies Hotline</h1>
-      <p>Voice-Powered Trade Request</p>
-    </div>
+  <div class="app">
+    <header>
+      <h1>Tradies Hotline</h1>
+      <p>Tell us what's wrong. We'll pass it on.</p>
+    </header>
 
-    <div class="content">
-      <!-- Chat area -->
-      <div class="chat-container" id="chatContainer">
-        <div class="empty-state">
-          <div class="empty-state-icon">👂</div>
-          <p>Click the microphone to describe your problem</p>
+    <nav class="steps" id="steps" aria-label="Progress">
+      <div class="step active" id="pill1"><b>1</b>Talk or type</div>
+      <span class="arrow" aria-hidden="true">➜</span>
+      <div class="step" id="pill2"><b>2</b>Tell me the problem</div>
+      <span class="arrow" aria-hidden="true">➜</span>
+      <div class="step" id="pill3"><b>3</b>Contact a tradie</div>
+    </nav>
+
+    <!-- STEP 1 & 2 SCREEN -->
+    <main id="chatScreen">
+      <div class="card" id="chooseCard">
+        <h2>Step 1: Talk or type</h2>
+        <div class="prompt">How would you like to tell us about the problem?</div>
+        <div class="choose">
+          <button class="btn-choose" id="chooseTalk" type="button">🎤 Talk<small>Speak and we write it down</small></button>
+          <button class="btn-choose alt" id="chooseType" type="button">⌨️ Type<small>Use the keyboard</small></button>
         </div>
       </div>
+      <div class="card hidden" id="promptCard" aria-live="polite">
+        <h2 id="stepHeading">Step 2: Tell me the problem</h2>
+        <div class="prompt" id="promptText"></div>
+        <button class="btn-speak" id="hearBtn" type="button">🔊 Hear it</button>
+      </div>
+    </main>
 
-      <!-- Customer details form -->
-      <div class="form-section" id="detailsForm">
-        <div style="font-weight: 600; margin-bottom: 8px;">Before we send this to the tradsman:</div>
-        <div class="form-group">
-          <label>Phone Number (optional)</label>
-          <input type="tel" id="phone" placeholder="+61412345678">
-          <small>For the tradsman to contact you</small>
-        </div>
-        <div class="form-group">
-          <label>Email Address (optional)</label>
-          <input type="email" id="email" placeholder="you@example.com">
-          <small>For confirmation and updates</small>
-        </div>
-        <div class="form-group">
-          <label>Address (optional)</label>
-          <input type="text" id="address" placeholder="123 Main Street, Sydney">
-        </div>
-        <div class="form-group">
-          <label>Postcode (optional)</label>
-          <input type="text" id="postcode" placeholder="2000">
-        </div>
-        <div class="form-group">
-          <label>Preferred Timeslot (optional)</label>
-          <input type="text" id="timeslot" placeholder="e.g., Tomorrow 9am-12pm">
-        </div>
-        <div class="error-message" id="contactError">Please provide either phone or email</div>
-        <button class="btn-send" onclick="submitDetails()">Submit & Send to Tradsman</button>
+    <!-- SUMMARY SCREEN -->
+    <main id="summaryScreen" class="hidden">
+      <div class="card">
+        <h2>Here is what we have</h2>
+        <div id="summaryBody"><p class="thinking">Writing it up for you…</p></div>
+        <button class="btn-speak" id="speakSummary" type="button">🔊 Read it to me</button>
+        <button class="btn-secondary" id="backBtn" type="button">✏️ Go back and add more</button>
       </div>
 
-      <!-- Success screen -->
-      <div class="success-screen" id="successScreen">
-        <div style="font-size: 32px;">✅</div>
-        <div style="font-size: 18px; font-weight: 600;">Request Submitted!</div>
-        <div id="successMessage"></div>
-        <div class="tradsman-card" id="tradsmanCard" style="display: none;">
-          <img id="tradsmanLogo" class="tradsman-logo" src="" alt="Tradsman logo">
-          <div style="font-weight: 600;" id="tradsmanName"></div>
-          <div style="font-size: 13px; color: #666;" id="tradsmanType"></div>
-        </div>
-        <div class="resources-list" id="resourcesList" style="display: none;"></div>
+      <div class="card" id="detailsCard">
+        <h2>Step 3: Contact a tradie</h2>
+        <p style="margin-bottom:4px;">How can they reach you?</p>
+        <label for="phone">Your phone number <small>So they can call you</small></label>
+        <input id="phone" type="tel" inputmode="tel" autocomplete="tel" placeholder="0412 345 678">
+        <label for="email">Your email <small>Optional if you gave a phone number</small></label>
+        <input id="email" type="email" inputmode="email" autocomplete="email" placeholder="you@example.com">
+        <label for="address">Street address <small>Optional</small></label>
+        <input id="address" type="text" autocomplete="street-address" placeholder="12 Smith Street">
+        <label for="postcode">Postcode <small>Optional</small></label>
+        <input id="postcode" type="text" inputmode="numeric" autocomplete="postal-code" maxlength="4" placeholder="2000">
+        <label for="timeslot">Best time to visit <small>Optional</small></label>
+        <select id="timeslot">
+          <option value="">Any time suits me</option>
+          <option>Morning</option>
+          <option>Afternoon</option>
+          <option>Evening</option>
+          <option>As soon as possible</option>
+        </select>
+        <div class="form-error hidden" id="formError"></div>
+        <button class="btn-primary" id="submitBtn" type="button">✅ Send to Tradesperson</button>
       </div>
-    </div>
+    </main>
 
-    <!-- Input section -->
-    <div class="input-section">
-      <div class="status" id="statusText">Ready to listen...</div>
-      <div class="button-group">
-        <button class="btn-voice" id="recordBtn" onclick="toggleRecording()">
-          <span id="recordIcon">🎤</span> <span id="recordLabel">Record</span>
-        </button>
-        <button class="btn-upload" onclick="document.getElementById('fileInput').click()">
-          📸 Photo/Video
-        </button>
+    <!-- DONE SCREEN -->
+    <main id="doneScreen" class="hidden">
+      <div class="card center">
+        <div class="big-tick">✅</div>
+        <h2>All done. Thank you!</h2>
+        <p id="doneMsg" style="margin-top:10px;">Your request has been sent. A tradesperson will contact you soon.</p>
+        <button class="btn-speak" id="speakDone" type="button">🔊 Read it to me</button>
       </div>
-      <textarea
-        id="textInput"
-        class="input-text"
-        placeholder="Type here or use voice recording..."
-        rows="2"
-        onkeydown="if(event.key==='Enter'&&!event.shiftKey) { event.preventDefault(); sendMessage(); }"
-      ></textarea>
-      <button class="btn-send" onclick="sendMessage()">Send Message</button>
+    </main>
+
+    <!-- INPUT DOCK -->
+    <div class="dock hidden" id="dock">
+      <div class="status" id="status" role="status"></div>
+      <button class="btn-mic" id="micBtn" type="button">🎤 Tap to Speak</button>
+      <textarea id="text" placeholder="Your words appear here. You can also tap and type." aria-label="Your answer"></textarea>
+      <button class="btn-send" id="sendBtn" type="button">➤ Send</button>
+      <button class="btn-light" id="photoBtn" type="button">📷 Add a Photo (optional)</button>
+      <button class="btn-done hidden" id="doneBtn" type="button">➡ Next: Contact a tradie</button>
+      <button class="btn-link" id="autoBtn" type="button" aria-pressed="true">🔇 Turn the voice off</button>
+      <input type="file" id="fileInput" accept="image/*,video/*" class="hidden">
     </div>
   </div>
 
-  <input type="file" id="fileInput" class="file-input" accept="image/*,video/*" onchange="handleFileUpload(event)">
-
-  <script>
-    let messages = [];
-    let submissionId = null;
-    let conversationStarted = false;
-
-    // =================================================================
-    // Voice input (Web Speech API)
-    // =================================================================
-    let recognition = null;
-    let isRecording = false;
-
-    // Set synchronously the moment start()/stop() is requested. `isRecording`
-    // only flips inside the async onstart/onend handlers, so it cannot guard a
-    // second start() issued before onstart has fired - which is what produces
-    // Chrome's InvalidStateError "recognition has already started".
-    let recognitionPending = false;
-
-    // If the browser never delivers onstart/onerror - the permission prompt is
-    // dismissed rather than answered, or the tab is backgrounded mid-start -
-    // `recognitionPending` would stay true forever and every later click would
-    // be silently swallowed. The watchdog releases the guard so the button can
-    // never end up permanently dead.
-    let watchdogTimer = null;
-    const VOICE_WATCHDOG_MS = 8000;
-
-    // Whatever was already in the textarea when recording began. Transcripts are
-    // appended to it instead of replacing it, so voice never eats typed text.
-    let baseText = '';
-    let finalTranscript = '';
-
-    // Set by onerror so the onend that follows does not overwrite the
-    // explanation with a generic "Ready to listen...".
-    let pendingStatusMessage = '';
-
-    function setStatus(message) {
-      const el = document.getElementById('statusText');
-      if (el) el.textContent = message;
-    }
-
-    function setVoiceUI(state) {
-      const btn = document.getElementById('recordBtn');
-      const label = document.getElementById('recordLabel');
-      if (btn) btn.classList.toggle('recording', state === 'listening');
-      if (label) label.textContent = state === 'listening' ? 'Stop' : 'Record';
-    }
-
-    function clearWatchdog() {
-      if (watchdogTimer !== null) {
-        clearTimeout(watchdogTimer);
-        watchdogTimer = null;
-      }
-    }
-
-    // The single recovery path: release every guard and return the button to idle.
-    function resetVoiceUI(message) {
-      clearWatchdog();
-      isRecording = false;
-      recognitionPending = false;
-      setVoiceUI('idle');
-      setStatus(message || 'Ready to listen...');
-    }
-
-    function armWatchdog() {
-      clearWatchdog();
-      watchdogTimer = setTimeout(() => {
-        watchdogTimer = null;
-        if (!recognitionPending) return;
-        console.warn('Speech recognition did not respond in time - resetting.');
-        try { if (recognition) recognition.abort(); } catch (_) { /* already dead */ }
-        resetVoiceUI('Ready to listen... (tap Record to try again)');
-      }, VOICE_WATCHDOG_MS);
-    }
-
-    function currentInputText() {
-      const parts = [baseText.trim(), finalTranscript.trim()].filter(Boolean);
-      return parts.join(' ');
-    }
-
-    function initSpeechRecognition() {
-      const SpeechRecognitionCtor = window.SpeechRecognition || window.webkitSpeechRecognition;
-
-      // Chrome/Safari only expose the mic on a secure origin. Without this check
-      // the constructor exists but start() fails silently - the classic
-      // "the button does nothing" report when a build is served over plain http.
-      if (window.isSecureContext === false) {
-        const btn = document.getElementById('recordBtn');
-        if (btn) btn.disabled = true;
-        setStatus('Voice needs a secure (https) connection - please type instead');
-        return;
-      }
-
-      if (!SpeechRecognitionCtor) {
-        const btn = document.getElementById('recordBtn');
-        if (btn) btn.disabled = true;
-        setStatus('Voice input is not supported in this browser - please type instead');
-        return;
-      }
-
-      try {
-        recognition = new SpeechRecognitionCtor();
-      } catch (error) {
-        console.error('Could not create SpeechRecognition:', error);
-        const btn = document.getElementById('recordBtn');
-        if (btn) btn.disabled = true;
-        setStatus('Voice input is unavailable - please type instead');
-        return;
-      }
-
-      // continuous: the user decides when to stop, so a pause mid-sentence does
-      // not silently end the session (important for older callers who speak slowly).
-      recognition.continuous = true;
-      recognition.interimResults = true;
-      recognition.maxAlternatives = 1;
-      recognition.lang = 'en-AU';
-
-      recognition.onstart = () => {
-        clearWatchdog();
-        isRecording = true;
-        recognitionPending = false;
-        pendingStatusMessage = '';
-        setVoiceUI('listening');
-        setStatus('🔴 Listening...');
-      };
-
-      recognition.onresult = (event) => {
-        let interim = '';
-        for (let i = event.resultIndex; i < event.results.length; i++) {
-          const transcript = event.results[i][0].transcript;
-          if (event.results[i].isFinal) {
-            finalTranscript += transcript + ' ';
-          } else {
-            interim += transcript;
-          }
-        }
-        const input = document.getElementById('textInput');
-        if (!input) return;
-        // Live preview: what is already typed + confirmed speech + the in-flight guess.
-        const parts = [baseText.trim(), (finalTranscript + interim).trim()].filter(Boolean);
-        input.value = parts.join(' ');
-      };
-
-      recognition.onerror = (event) => {
-        const code = (event && event.error) || 'unknown';
-        // "aborted" is what a normal stop() looks like - never surface it.
-        if (code === 'aborted') {
-          pendingStatusMessage = '';
-        } else if (code === 'no-speech') {
-          pendingStatusMessage = "Didn't catch that - tap Record and try again";
-        } else if (code === 'not-allowed' || code === 'service-not-allowed') {
-          pendingStatusMessage = '🎤 Microphone blocked - allow mic access in your browser settings';
-        } else if (code === 'audio-capture') {
-          pendingStatusMessage = '🎤 No microphone found - check your device';
-        } else if (code === 'network') {
-          pendingStatusMessage = '❌ Network problem - the speech service is unreachable';
-        } else {
-          pendingStatusMessage = '❌ Voice error: ' + code;
-        }
-        console.warn('Speech recognition error:', code);
-        resetVoiceUI(pendingStatusMessage);
-      };
-
-      // onend is the one guaranteed terminal event - it fires after a stop(), an
-      // abort(), an error, and an engine-initiated timeout. All cleanup and the
-      // hand-off to the chat happen here so there is exactly one exit path.
-      recognition.onend = () => {
-        const captured = finalTranscript.trim();
-        const input = document.getElementById('textInput');
-        if (input) input.value = currentInputText();
-
-        finalTranscript = '';
-        baseText = '';
-
-        resetVoiceUI(pendingStatusMessage || 'Ready to listen...');
-        pendingStatusMessage = '';
-
-        // Hand the recorded words to the chat.
-        if (captured && input && input.value.trim()) {
-          sendMessage();
-        }
-      };
-    }
-
-    function toggleRecording() {
-      if (!recognition) {
-        // Never leave a click unexplained.
-        const btn = document.getElementById('recordBtn');
-        if (btn) btn.disabled = true;
-        setStatus('Voice input is not available - please type your message instead');
-        return;
-      }
-
-      // A start or stop is already in flight - swallow this click rather than
-      // calling start()/stop() twice and tripping InvalidStateError.
-      if (recognitionPending) return;
-
-      if (isRecording) {
-        recognitionPending = true;
-        armWatchdog();
-        try {
-          recognition.stop();
-        } catch (error) {
-          console.warn('Speech recognition stop() failed:', error);
-          try { recognition.abort(); } catch (_) { /* nothing left to abort */ }
-          resetVoiceUI('Ready to listen...');
-        }
-        return;
-      }
-
-      // Starting fresh: snapshot what is typed so speech is appended, not pasted over.
-      const input = document.getElementById('textInput');
-      baseText = input ? input.value : '';
-      finalTranscript = '';
-      pendingStatusMessage = '';
-
-      recognitionPending = true;
-      armWatchdog();
-      try {
-        recognition.start();
-        setStatus('Starting microphone...');
-      } catch (error) {
-        // Chrome throws InvalidStateError when the engine is still winding down.
-        // abort() forces it back to idle so the next click can succeed.
-        console.warn('Speech recognition start() failed:', error);
-        try { recognition.abort(); } catch (_) { /* already idle */ }
-        resetVoiceUI('Ready to listen... (tap Record to try again)');
-      }
-    }
-
-    initSpeechRecognition();
-
-    async function startSubmission() {
-      try {
-        const ctl = new AbortController();
-        const t = setTimeout(() => ctl.abort(), 6000);
-        let data = {};
-        try {
-          const response = await fetch('/api/v1/submission/start', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({}),
-            signal: ctl.signal
-          });
-          if (response.ok) data = await response.json();
-        } finally { clearTimeout(t); }
-        // Chat works even if the submission record could not be created.
-        submissionId = data.submissionId || null;
-        conversationStarted = true;
-
-        const greeting = "👋 Hello! Welcome to Tradies Hotline.\n\nI'm here to help you describe your plumbing issue so we can connect you with the right professional.\n\nTell me - what's happening with your plumbing? Feel free to share as much detail as you can.";
-        // NOTE: the greeting is displayed only. It is deliberately NOT pushed into
-        // `messages`, because Gemini (v1beta) rejects any history whose first turn
-        // is a model/assistant turn: "First content should be with role 'user'".
-        displayMessage('assistant', greeting);
-      } catch (error) {
-        console.error('Error starting submission:', error);
-        conversationStarted = true; // carry on without a saved submission
-      }
-    }
-
-    // Build the history sent to /api/v1/chat.
-    // Gemini v1beta requires the first turn to have role 'user', so we drop any
-    // leading assistant turns and normalise each entry to {role, content}.
-    function buildChatHistory() {
-      const firstUser = messages.findIndex(m => m && m.role === 'user');
-      if (firstUser === -1) return [];
-      return messages
-        .slice(firstUser)
-        .filter(m => m && (m.role === 'user' || m.role === 'assistant') && typeof m.content === 'string' && m.content.trim())
-        .map(m => ({ role: m.role, content: m.content }));
-    }
-
-    async function sendMessage() {
-      const textInput = document.getElementById('textInput');
-      const userMessage = textInput.value.trim();
-
-      if (!userMessage) return;
-
-      textInput.value = '';
-      if (!conversationStarted) {
-        await startSubmission();
-      }
-
-      messages.push({ role: 'user', content: userMessage });
-      displayMessage('user', userMessage);
-
-      try {
-        const response = await fetch('/api/v1/chat', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ messages: buildChatHistory(), submissionId })
-        });
-
-        if (!response.ok) {
-          // The backend returns a plain { error, details } body on failure.
-          let serverMessage = '';
-          try {
-            serverMessage = (await response.json()).error || '';
-          } catch (_) { /* non-JSON error body */ }
-          throw new Error(serverMessage || 'Chat failed');
-        }
-
-        const data = await response.json();
-        messages.push({ role: 'assistant', content: data.content });
-        displayMessage('assistant', data.content);
-
-        // Auto-show form after 4-5 turns
-        if (messages.length >= 8 && !document.getElementById('detailsForm').classList.contains('active')) {
-          setTimeout(() => document.getElementById('detailsForm').classList.add('active'), 1000);
-        }
-      } catch (error) {
-        console.error('Chat error:', error);
-        displayMessage('assistant', '❌ Sorry, I had trouble processing that. Please try again.');
-      }
-    }
-
-    function displayMessage(role, content) {
-      const chatContainer = document.getElementById('chatContainer');
-
-      // Remove empty state
-      const emptyState = chatContainer.querySelector('.empty-state');
-      if (emptyState && messages.length <= 2) {
-        emptyState.remove();
-      }
-
-      const messageDiv = document.createElement('div');
-      messageDiv.className = `message ${role}`;
-
-      const bubble = document.createElement('div');
-      bubble.className = 'message-bubble';
-      bubble.textContent = content;
-
-      // Add TTS button for assistant messages
-      if (role === 'assistant') {
-        const speakerBtn = document.createElement('button');
-        speakerBtn.className = 'tts-btn';
-        speakerBtn.textContent = '🔊';
-        speakerBtn.onclick = () => playText(content, speakerBtn);
-        bubble.appendChild(speakerBtn);
-      }
-
-      messageDiv.appendChild(bubble);
-      chatContainer.appendChild(messageDiv);
-      chatContainer.scrollTop = chatContainer.scrollHeight;
-    }
-
-    /* ==================================================================
-       TEXT-TO-SPEECH
-       Goal: a natural-sounding, medium-pitched male voice that reads
-       assertively, lifts on questions, and pauses like a human would.
-       ================================================================== */
-
-    // --- Voice selection ----------------------------------------------
-    const TTS_MALE_HINTS = [
-      'male', 'man', 'alex', 'aaron', 'arthur', 'brian', 'bruce', 'christopher',
-      'daniel', 'david', 'eric', 'fred', 'george', 'gordon', 'guy', 'james',
-      'jamie', 'john', 'lee', 'liam', 'mark', 'matthew', 'michael', 'nathan',
-      'oliver', 'ralph', 'reed', 'rishi', 'roger', 'russell', 'ryan', 'steffan',
-      'thomas', 'tom', 'william'
-    ];
-
-    const TTS_FEMALE_HINTS = [
-      'female', 'woman', 'allison', 'amelie', 'ana', 'anna', 'aria', 'ava',
-      'carol', 'catherine', 'clara', 'emma', 'fiona', 'hazel', 'jenny',
-      'joanna', 'karen', 'kate', 'kathy', 'libby', 'linda', 'lisa', 'maisie',
-      'michelle', 'moira', 'natasha', 'nicky', 'samantha', 'sandy', 'sara',
-      'serena', 'shelley', 'sonia', 'susan', 'tessa', 'veena', 'victoria',
-      'zira', 'zoe'
-    ];
-
-    // Novelty / low-quality engines that sound obviously synthetic.
-    const TTS_ROBOTIC_HINTS = [
-      'espeak', 'zarvox', 'trinoids', 'albert', 'bahh', 'bells', 'boing',
-      'bubbles', 'cellos', 'deranged', 'hysterical', 'organ', 'whisper',
-      'bad news', 'good news', 'pipe organ', 'compact', 'novelty'
-    ];
-
-    // Markers vendors use for their newer, more human-sounding models.
-    const TTS_QUALITY_HINTS = [
-      'natural', 'neural', 'premium', 'enhanced', 'siri', 'wavenet', 'studio'
-    ];
-
-    let ttsVoice = null;          // cached winner
-    let ttsVoiceChosen = false;   // has selection run against a populated list
-
-    function scoreVoice(voice) {
-      const name = (voice.name || '').toLowerCase();
-      const uri = (voice.voiceURI || '').toLowerCase();
-      const id = name + ' ' + uri;
-      const lang = (voice.lang || '').toLowerCase().replace('_', '-');
-      let score = 0;
-
-      // English only — anything else is disqualified outright.
-      if (!lang.startsWith('en')) return -Infinity;
-
-      // Locale: this is an Australian trades service, so match the accent
-      // used by speech recognition (en-AU), then the nearest neighbours.
-      if (lang.startsWith('en-au')) score += 45;
-      else if (lang.startsWith('en-nz')) score += 28;
-      else if (lang.startsWith('en-gb')) score += 25;
-      else if (lang.startsWith('en-us')) score += 15;
-      else score += 5;
-
-      // Gender: female names are hard-excluded, male names strongly favoured.
-      // "female" is checked first because it contains the substring "male".
-      const isFemale = TTS_FEMALE_HINTS.some(h => id.includes(h));
-      if (isFemale) return -Infinity;
-      if (TTS_MALE_HINTS.some(h => id.includes(h))) score += 60;
-
-      // Quality: reward modern neural voices, punish novelty/robotic ones.
-      if (TTS_QUALITY_HINTS.some(h => id.includes(h))) score += 40;
-      if (TTS_ROBOTIC_HINTS.some(h => id.includes(h))) score -= 80;
-
-      // Legacy desktop SAPI voices (e.g. "Microsoft David Desktop") are the
-      // classic robotic sound; the newer "Microsoft ... Online (Natural)"
-      // voices already picked up the quality bonus above.
-      if (id.includes('desktop')) score -= 35;
-      if (id.includes('microsoft') && !id.includes('natural')) score -= 15;
-      if (id.includes('google') && !id.includes('natural')) score -= 10;
-
-      // Small tie-breakers.
-      if (voice.localService) score += 3;   // no network stall mid-sentence
-      if (voice.default) score += 2;
-
-      return score;
-    }
-
-    function selectVoice() {
-      let voices = [];
-      try { voices = window.speechSynthesis.getVoices() || []; } catch (e) { voices = []; }
-      if (!voices.length) return null;   // list not populated yet
-
-      let best = null;
-      let bestScore = -Infinity;
-      voices.forEach(v => {
-        const s = scoreVoice(v);
-        if (s > bestScore) { bestScore = s; best = v; }
-      });
-
-      // Fallback chain: no acceptable male/English voice scored, so take any
-      // English voice, and failing that the browser default (first entry).
-      if (!best || bestScore === -Infinity) {
-        best = voices.find(v => (v.lang || '').toLowerCase().startsWith('en-au'))
-            || voices.find(v => (v.lang || '').toLowerCase().startsWith('en'))
-            || voices.find(v => v.default)
-            || voices[0];
-      }
-
-      ttsVoice = best || null;
-      ttsVoiceChosen = !!best;
-      return ttsVoice;
-    }
-
-    if ('speechSynthesis' in window) {
-      // Voice lists load asynchronously in Chrome/Edge — prime it now and
-      // re-run selection when the browser reports the list is ready.
-      selectVoice();
-      window.speechSynthesis.onvoiceschanged = () => selectVoice();
-      window.addEventListener('beforeunload', () => window.speechSynthesis.cancel());
-    }
-
-    // --- Speech shaping ------------------------------------------------
-    const TTS_BASE = { rate: 0.95, pitch: 0.85, volume: 1.0 };
-
-    // Strip emoji/pictographs so the engine doesn't announce "cross mark".
-    function cleanForSpeech(text) {
-      return String(text || '')
-        .replace(/[\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}\u{FE0F}\u{2190}-\u{21FF}\u{2B00}-\u{2BFF}]/gu, ' ')
-        .replace(/\s{2,}/g, ' ')
-        .trim();
-    }
-
-    // Break into sentence-sized chunks. Chunking gives us human pacing
-    // (real gaps between sentences) and dodges the Chrome bug where a long
-    // single utterance cuts out after ~15 seconds.
-    function buildChunks(text) {
-      // Match-based split (rather than a lookbehind) so the script still
-      // parses on older Safari builds.
-      const raw = (cleanForSpeech(text).match(/[^.!?]+[.!?]*/g) || [])
-        .map(s => s.trim())
-        .filter(Boolean);
-
-      // Decimal amounts ("$1.50", "3.5 hours") look like sentence breaks to
-      // the splitter above — stitch those fragments back together.
-      const sentences = [];
-      raw.forEach(s => {
-        const prev = sentences[sentences.length - 1];
-        if (prev && /\d\.$/.test(prev) && /^\d/.test(s)) {
-          sentences[sentences.length - 1] = prev + s;
-        } else {
-          sentences.push(s);
-        }
-      });
-
-      const chunks = [];
-      sentences.forEach(sentence => {
-        // A question mark only ever lands on the final clause, so decide
-        // the intonation once per sentence and apply it to every clause.
-        const isQuestion = /\?\s*$/.test(sentence);
-
-        // Very long sentences get split on clause boundaries so the
-        // delivery keeps breathing instead of running on.
-        const parts = sentence.length > 180
-          ? (sentence.match(/[^,;:]+[,;:]*/g) || [sentence]).map(p => p.trim()).filter(Boolean)
-          : [sentence];
-
-        parts.forEach((part, i) => {
-          const isLastPart = i === parts.length - 1;
-          chunks.push({
-            text: part,
-            isQuestion,
-            // Enquiring lift: questions rise slightly and slow a touch so
-            // they land as a genuine question rather than a flat statement.
-            pitch: isQuestion ? TTS_BASE.pitch + 0.15 : TTS_BASE.pitch,
-            rate:  isQuestion ? TTS_BASE.rate - 0.03 : TTS_BASE.rate,
-            // Beat of silence before a question — the assertive "hang on,
-            // here's what I need from you" pause. Only before the opening
-            // clause, never mid-sentence.
-            gapBefore: (isQuestion && i === 0) ? 320 : 0,
-            gapAfter: isLastPart ? 220 : 90
-          });
-        });
-      });
-
-      return chunks.length ? chunks : [{
-        text: cleanForSpeech(text), isQuestion: false,
-        pitch: TTS_BASE.pitch, rate: TTS_BASE.rate, gapBefore: 0, gapAfter: 0
-      }];
-    }
-
-    // --- Playback ------------------------------------------------------
-    let ttsRunId = 0;          // invalidates any in-flight sequence
-    let ttsActiveButton = null;
-    let ttsKeepAlive = null;
-
-    function stopSpeech() {
-      ttsRunId++;
-      if (ttsKeepAlive) { clearInterval(ttsKeepAlive); ttsKeepAlive = null; }
-      try { window.speechSynthesis.cancel(); } catch (e) {}
-      if (ttsActiveButton) ttsActiveButton.classList.remove('playing');
-      ttsActiveButton = null;
-    }
-
-    function playText(text, button) {
-      if (!('speechSynthesis' in window)) return;
-
-      // Clicking the speaker of the message that's already talking stops it.
-      const wasPlaying = button && button.classList.contains('playing');
-      stopSpeech();
-      if (wasPlaying) return;
-
-      const spoken = cleanForSpeech(text);
-      if (!spoken) return;
-
-      // Late-loading voice lists: try once more at play time.
-      if (!ttsVoiceChosen) selectVoice();
-
-      const runId = ++ttsRunId;
-      const chunks = buildChunks(spoken);
-      let index = 0;
-
-      if (button) { button.classList.add('playing'); ttsActiveButton = button; }
-
-      // Chrome silently suspends synthesis on longer reads; a periodic
-      // resume() keeps it running.
-      ttsKeepAlive = setInterval(() => {
-        if (window.speechSynthesis.speaking && !window.speechSynthesis.paused) {
-          try { window.speechSynthesis.resume(); } catch (e) {}
-        }
-      }, 5000);
-
-      const finish = () => {
-        if (runId !== ttsRunId) return;
-        if (ttsKeepAlive) { clearInterval(ttsKeepAlive); ttsKeepAlive = null; }
-        if (button) button.classList.remove('playing');
-        if (ttsActiveButton === button) ttsActiveButton = null;
-      };
-
-      const speakNext = () => {
-        if (runId !== ttsRunId) return;             // superseded or stopped
-        if (index >= chunks.length) return finish();
-
-        const chunk = chunks[index++];
-        const utterance = new SpeechSynthesisUtterance(chunk.text);
-
-        if (ttsVoice) {
-          utterance.voice = ttsVoice;
-          utterance.lang = ttsVoice.lang;           // some engines need both
-        } else {
-          utterance.lang = 'en-AU';                 // fallback: at least the accent
-        }
-
-        utterance.rate = chunk.rate;
-        utterance.pitch = chunk.pitch;
-        utterance.volume = TTS_BASE.volume;
-
-        utterance.onend = () => {
-          if (runId !== ttsRunId) return;
-          setTimeout(speakNext, chunk.gapAfter);
-        };
-        utterance.onerror = () => {
-          if (runId !== ttsRunId) return;
-          // Don't abandon the whole message on one bad chunk.
-          setTimeout(speakNext, 60);
-        };
-
-        const start = () => {
-          if (runId !== ttsRunId) return;
-          try { window.speechSynthesis.speak(utterance); }
-          catch (e) { finish(); }
-        };
-
-        chunk.gapBefore ? setTimeout(start, chunk.gapBefore) : start();
-      };
-
-      speakNext();
-    }
-
-    async function handleFileUpload(event) {
-      const file = event.target.files[0];
-      if (!file) return;
-
-      if (!conversationStarted) {
-        await startSubmission();
-      }
-
-      const reader = new FileReader();
-      reader.onload = async (e) => {
-        try {
-          displayMessage('user', `📎 Uploading ${file.name}...`);
-
-          const response = await fetch('/api/v1/upload', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              file: e.target.result,
-              type: file.type,
-              submissionId,
-              filename: file.name
-            })
-          });
-
-          if (!response.ok) throw new Error('Upload failed');
-
-          const data = await response.json();
-          displayMessage('user', `📎 ${file.name} uploaded`);
-          displayMessage('assistant', 'Great! I can see the photo/video. Can you tell me more about what it shows?');
-        } catch (error) {
-          console.error('Upload error:', error);
-          displayMessage('assistant', '❌ Failed to upload. Please try again.');
-        }
-      };
-
-      reader.readAsDataURL(file);
-      event.target.value = '';
-    }
-
-    async function submitDetails() {
-      const phone = document.getElementById('phone').value.trim();
-      const email = document.getElementById('email').value.trim();
-      const address = document.getElementById('address').value.trim();
-      const postcode = document.getElementById('postcode').value.trim();
-      const timeslot = document.getElementById('timeslot').value.trim();
-
-      if (!phone && !email) {
-        document.getElementById('contactError').classList.add('active');
-        return;
-      }
-
-      document.getElementById('contactError').classList.remove('active');
-
-      try {
-        // Update submission
-        const detailsResponse = await fetch(`/api/v1/submission/${submissionId}/details`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            phone: phone || null,
-            email: email || null,
-            address: address || null,
-            postcode: postcode || null,
-            preferredTimeslot: timeslot || null
-          })
-        });
-
-        if (!detailsResponse.ok) throw new Error('Details update failed');
-
-        // Submit
-        const submitResponse = await fetch(`/api/v1/submission/${submissionId}/submit`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({})
-        });
-
-        const submitData = await submitResponse.json();
-
-        // Show success screen
-        document.getElementById('detailsForm').classList.remove('active');
-        document.getElementById('successScreen').classList.add('active');
-        document.getElementById('successMessage').textContent = submitData.message;
-
-        // Disable inputs
-        document.getElementById('textInput').disabled = true;
-        document.getElementById('recordBtn').disabled = true;
-      } catch (error) {
-        console.error('Submission error:', error);
-        document.getElementById('contactError').textContent = 'Submission failed. Please try again.';
-        document.getElementById('contactError').classList.add('active');
-      }
-    }
-
-    // Start on focus
-    document.getElementById('textInput').addEventListener('focus', () => {
-      if (!conversationStarted) {
-        startSubmission();
-      }
+<script>
+(() => {
+  'use strict';
+  const $ = (id) => document.getElementById(id);
+  const textEl = $('text'), statusEl = $('status');
+  const micBtn = $('micBtn'), sendBtn = $('sendBtn'), doneBtn = $('doneBtn');
+
+  const GREETING_OLD = "G'day! Tap the blue button and tell me what's gone wrong at your place, in your own words. Or you can type it.";
+
+  let messages = [];          // sent to /api/v1/chat (greeting is NOT included)
+  let submissionId = null;
+  let startPromise = null;
+  let startFailed = false;
+  let sending = false;
+  let autoRead = true;
+  let photoCount = 0;
+
+  // ---------------------------------------------------------------- helpers
+  function setStatus(text, cls) {
+    statusEl.textContent = text || '';
+    statusEl.className = 'status' + (cls ? ' ' + cls : '');
+  }
+  function scrollToBubble(el) {
+    // Show the start of the newest message (not the bottom of the page) so it is read first.
+    requestAnimationFrame(() => el.scrollIntoView({ behavior: 'smooth', block: 'start' }));
+  }
+  function fetchJSON(url, body, ms = 30000) {
+    const ctl = new AbortController();
+    const t = setTimeout(() => ctl.abort(), ms);
+    return fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+      signal: ctl.signal
+    }).finally(() => clearTimeout(t));
+  }
+
+  // --------------------------------------------------------- steps + prompt
+  const GREETING = "Tell me what's gone wrong at your place, in your own words. Take your time.";
+  let step = 1, currentPrompt = '', questionNo = 0, chosen = false;
+
+  function setStep(n) {
+    step = n;
+    ['pill1', 'pill2', 'pill3'].forEach((id, i) => {
+      const el = $(id);
+      el.classList.toggle('active', i + 1 === n);
+      el.classList.toggle('done', i + 1 < n);
     });
-  </script>
+    $('chooseCard').classList.toggle('hidden', n !== 1);
+    $('promptCard').classList.toggle('hidden', n !== 2);
+    $('dock').classList.toggle('hidden', n !== 2);
+    doneBtn.classList.toggle('hidden', n !== 2 || !messages.some(m => m.role === 'user'));
+  }
+  function setPrompt(text, thinking) {
+    currentPrompt = thinking ? '' : text;
+    const el = $('promptText');
+    el.textContent = text;
+    el.classList.toggle('thinking', !!thinking);
+    $('hearBtn').classList.toggle('hidden', !!thinking);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+  $('hearBtn').addEventListener('click', (e) => {
+    if (currentPrompt) toggleSpeak(currentPrompt, e.currentTarget, '🔊 Hear it');
+  });
+
+  async function ensureSubmission() {
+    if (submissionId || startFailed) return;
+    if (!startPromise) {
+      startPromise = (async () => {
+        try {
+          const r = await fetchJSON('/api/v1/submission/start', {}, 6000);
+          if (r.ok) submissionId = (await r.json()).submissionId || null;
+        } catch (_) { /* chat still works without a saved record */ }
+      })();
+    }
+    await startPromise;
+    if (!submissionId) { startFailed = true; startPromise = null; }
+  }
+
+  async function send() {
+    if (sending) return;
+    const text = textEl.value.trim();
+    if (!text) { setStatus('Please type or speak something first.', 'err'); return; }
+    stopSpeaking();
+    if (recState === 'recording') { await stopRecording(true); }
+    sending = true; sendBtn.disabled = true; micBtn.disabled = true;
+    setStatus('');
+    textEl.value = '';
+    messages.push({ role: 'user', content: text });
+    const prevPrompt = currentPrompt;
+    setPrompt('One moment, thinking…', true);
+
+    await ensureSubmission();
+    try {
+      const r = await fetchJSON('/api/v1/chat', { messages, submissionId }, 35000);
+      if (!r.ok) throw new Error('chat ' + r.status);
+      const data = await r.json();
+      messages.push({ role: 'assistant', content: data.content });
+      questionNo++;
+      doneBtn.classList.remove('hidden');
+      setPrompt(data.content);
+      if (autoRead) speak(data.content);
+    } catch (e) {
+      console.error(e);
+      messages.pop();            // let them resend
+      setPrompt(prevPrompt || GREETING);
+      textEl.value = text;
+      setStatus('Sorry, that did not go through. Please tap Send again.', 'err');
+    } finally {
+      sending = false; sendBtn.disabled = false; micBtn.disabled = false;
+    }
+  }
+
+  // ------------------------------------------------------------ speech out
+  const synth = window.speechSynthesis;
+  let voice = null, speakToken = 0, speakingBtn = null, speakingLabel = '';
+
+  function pickVoice() {
+    if (!synth) return;
+    const vs = synth.getVoices();
+    if (!vs.length) return;
+    const male = /(lee|william|james|daniel|david|george|rishi|male|ryan|gordon|liam)/i;
+    let best = null, bestScore = -1;
+    for (const v of vs) {
+      let s = 0;
+      if (/^en[-_]AU/i.test(v.lang)) s += 50;
+      else if (/^en[-_](GB|NZ|IE|ZA)/i.test(v.lang)) s += 30;
+      else if (/^en/i.test(v.lang)) s += 20;
+      else continue;
+      if (male.test(v.name)) s += 15;
+      if (/natural|neural|online|enhanced|premium/i.test(v.name)) s += 12;
+      if (/google/i.test(v.name)) s += 5;
+      if (s > bestScore) { best = v; bestScore = s; }
+    }
+    voice = best;
+  }
+  if (synth) { pickVoice(); synth.addEventListener && synth.addEventListener('voiceschanged', pickVoice); }
+
+  function chunksOf(text) {
+    const clean = text.replace(/[*_#`>•]/g, ' ').replace(/\s+/g, ' ').trim();
+    const parts = clean.match(/[^.!?]+[.!?]*/g) || [clean];
+    const out = [];
+    for (const p of parts) {
+      const t = p.trim();
+      if (!t) continue;
+      if (t.length <= 200) out.push(t);
+      else t.match(/.{1,180}(\s|$)/g).forEach(x => out.push(x.trim()));
+    }
+    return out;
+  }
+
+  function resetSpeakBtn() {
+    if (speakingBtn) { speakingBtn.classList.remove('on'); speakingBtn.textContent = speakingLabel; }
+    speakingBtn = null;
+  }
+  function stopSpeaking() {
+    speakToken++;
+    if (synth) synth.cancel();
+    resetSpeakBtn();
+  }
+  function speak(text, btn, label) {
+    if (!synth) return;
+    stopSpeaking();
+    const my = ++speakToken;
+    if (btn) { speakingBtn = btn; speakingLabel = label; btn.classList.add('on'); btn.textContent = '⏹ Stop reading'; }
+    const parts = chunksOf(text);
+    let i = 0;
+    const next = () => {
+      if (my !== speakToken) return;
+      if (i >= parts.length) { resetSpeakBtn(); return; }
+      const u = new SpeechSynthesisUtterance(parts[i++]);
+      if (voice) { u.voice = voice; u.lang = voice.lang; } else { u.lang = 'en-AU'; }
+      u.volume = 1;              // maximum the browser allows
+      u.rate = 0.88;             // a little slower is easier to follow
+      u.pitch = 0.95;
+      u.onend = () => setTimeout(next, 120);
+      u.onerror = () => setTimeout(next, 60);
+      synth.speak(u);
+    };
+    next();
+  }
+  function toggleSpeak(text, btn, label) {
+    if (speakingBtn === btn) { stopSpeaking(); return; }
+    speak(text, btn, label);
+  }
+
+  $('autoBtn').addEventListener('click', () => {
+    autoRead = !autoRead;
+    $('autoBtn').textContent = autoRead ? '🔇 Turn the voice off' : '🔊 Turn the voice on';
+    $('autoBtn').setAttribute('aria-pressed', String(autoRead));
+    if (!autoRead) stopSpeaking();
+  });
+
+  // ------------------------------------------------------------ microphone
+  let recState = 'idle';     // idle | recording | busy
+  let recorder = null, recStream = null, recChunks = [], recTimer = null, recMime = '';
+
+  function setMic(state) {
+    recState = state;
+    micBtn.classList.toggle('rec', state === 'recording');
+    micBtn.classList.toggle('busy', state === 'busy');
+    micBtn.textContent = state === 'recording' ? '⏹ Tap when you have finished'
+      : state === 'busy' ? '⏳ Writing down your words…'
+      : '🎤 Tap to Speak';
+    micBtn.disabled = state === 'busy';
+  }
+  function bestMime() {
+    if (!window.MediaRecorder) return '';
+    for (const m of ['audio/webm;codecs=opus', 'audio/webm', 'audio/mp4', 'audio/ogg;codecs=opus']) {
+      try { if (MediaRecorder.isTypeSupported(m)) return m; } catch (_) {}
+    }
+    return '';
+  }
+  function releaseMic() {
+    clearTimeout(recTimer);
+    if (recStream) recStream.getTracks().forEach(t => t.stop());
+    recStream = null;
+  }
+
+  async function startRecording() {
+    stopSpeaking();
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia || !window.MediaRecorder) {
+      setStatus('Speaking is not available on this phone. Please type instead.', 'err');
+      return;
+    }
+    try {
+      recStream = await navigator.mediaDevices.getUserMedia({
+        audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true }
+      });
+    } catch (e) {
+      console.warn(e);
+      setStatus('The microphone is blocked. Tap "Allow" when asked, or type instead.', 'err');
+      return;
+    }
+    recMime = bestMime();
+    recChunks = [];
+    try {
+      recorder = recMime ? new MediaRecorder(recStream, { mimeType: recMime }) : new MediaRecorder(recStream);
+    } catch (e) {
+      releaseMic();
+      setStatus('Speaking is not available on this phone. Please type instead.', 'err');
+      return;
+    }
+    recorder.ondataavailable = (ev) => { if (ev.data && ev.data.size) recChunks.push(ev.data); };
+    recorder.start(250);
+    setMic('recording');
+    setStatus('Listening… speak now', 'rec');
+    recTimer = setTimeout(() => stopRecording(false), 90000);   // safety stop
+  }
+
+  function stopRecording(discard) {
+    return new Promise((resolve) => {
+      if (!recorder || recorder.state === 'inactive') { releaseMic(); setMic('idle'); return resolve(); }
+      const rec = recorder;
+      rec.onstop = async () => {
+        const type = rec.mimeType || recMime || 'audio/webm';
+        releaseMic();
+        const blob = new Blob(recChunks, { type });
+        recChunks = [];
+        if (discard) { setMic('idle'); setStatus(''); return resolve(); }
+        setMic('busy');
+        setStatus('Working out what you said…');
+        try {
+          const dataUrl = await new Promise((res, rej) => {
+            const fr = new FileReader();
+            fr.onload = () => res(fr.result);
+            fr.onerror = rej;
+            fr.readAsDataURL(blob);
+          });
+          const r = await fetchJSON('/api/v1/transcribe', { audio: dataUrl, mimeType: type }, 30000);
+          if (!r.ok) throw new Error('transcribe ' + r.status);
+          const { text } = await r.json();
+          if (text) {
+            textEl.value = (textEl.value ? textEl.value.trim() + ' ' : '') + text;
+            setStatus('Check the words above, then tap the green Send button.');
+          } else {
+            setStatus('I did not hear anything. Please tap Speak and try again.', 'err');
+          }
+        } catch (e) {
+          console.error(e);
+          setStatus('Sorry, I could not catch that. Please try again or type.', 'err');
+        } finally {
+          setMic('idle');
+          resolve();
+        }
+      };
+      try { rec.stop(); } catch (_) { releaseMic(); setMic('idle'); resolve(); }
+    });
+  }
+
+  micBtn.addEventListener('click', () => {
+    if (recState === 'idle') startRecording();
+    else if (recState === 'recording') stopRecording(false);
+  });
+
+  // ------------------------------------------------------------- photos
+  $('photoBtn').addEventListener('click', () => $('fileInput').click());
+  $('fileInput').addEventListener('change', async (ev) => {
+    const file = ev.target.files[0];
+    ev.target.value = '';
+    if (!file) return;
+    setStatus('Sending your photo…');
+    await ensureSubmission();
+    if (!submissionId) { setStatus('Sorry, photos cannot be saved right now. You can carry on without one.', 'err'); return; }
+    try {
+      const dataUrl = await new Promise((res, rej) => {
+        const fr = new FileReader(); fr.onload = () => res(fr.result); fr.onerror = rej; fr.readAsDataURL(file);
+      });
+      const r = await fetchJSON('/api/v1/upload', { file: dataUrl, type: file.type, submissionId, filename: file.name }, 60000);
+      if (!r.ok) throw new Error('upload ' + r.status);
+      photoCount++;
+      messages.push({ role: 'user', content: '(The customer has sent a photo of the problem.)' });
+      setStatus('Photo sent. Thank you.');
+    } catch (e) {
+      console.error(e);
+      setStatus('Sorry, the photo did not send. Please try again.', 'err');
+    }
+  });
+
+  // -------------------------------------------------------------- summary
+  let summaryText = '';
+  function showScreen(name) {
+    $('chatScreen').classList.toggle('hidden', name !== 'chat');
+    $('summaryScreen').classList.toggle('hidden', name !== 'summary');
+    $('doneScreen').classList.toggle('hidden', name !== 'done');
+    $('dock').classList.add('hidden');
+    if (name === 'summary') setStep(3);
+    if (name === 'done') { setStep(4); $('dock').classList.add('hidden'); }
+    if (name === 'chat') setStep(chosen ? 2 : 1);
+    window.scrollTo(0, 0);
+  }
+
+  async function showSummary() {
+    stopSpeaking();
+    if (recState === 'recording') await stopRecording(true);
+    showScreen('summary');
+    const body = $('summaryBody');
+    body.innerHTML = '<p class="thinking">Writing it up for you…</p>';
+    summaryText = '';
+    let data = null;
+    try {
+      const r = await fetchJSON('/api/v1/summary', { messages }, 30000);
+      if (r.ok) data = await r.json();
+    } catch (e) { console.error(e); }
+    if (!data || (!data.headline && !(data.points || []).length)) {
+      data = {
+        headline: 'This is what you told us.',
+        points: messages.filter(m => m.role === 'user').slice(-4).map(m => ({ label: 'You said', text: m.content }))
+      };
+    }
+    body.textContent = '';
+    const h = document.createElement('div');
+    h.className = 'headline';
+    h.textContent = data.headline;
+    body.append(h);
+    const spoken = [data.headline];
+    for (const p of (data.points || [])) {
+      const d = document.createElement('div');
+      d.className = 'point';
+      const b = document.createElement('b'); b.textContent = p.label || '';
+      d.append(b, document.createTextNode(p.text || ''));
+      body.append(d);
+      spoken.push(`${p.label}. ${p.text}.`);
+    }
+    if (photoCount) {
+      const d = document.createElement('div'); d.className = 'point';
+      const b = document.createElement('b'); b.textContent = 'Photos';
+      d.append(b, document.createTextNode(photoCount + ' sent'));
+      body.append(d);
+    }
+    summaryText = spoken.join(' ');
+  }
+
+  $('doneBtn').addEventListener('click', showSummary);
+  $('backBtn').addEventListener('click', () => { stopSpeaking(); showScreen('chat'); });
+  $('speakSummary').addEventListener('click', (e) => {
+    if (summaryText) toggleSpeak(summaryText, e.currentTarget, '🔊 Read it to me');
+  });
+  $('speakDone').addEventListener('click', (e) => toggleSpeak($('doneMsg').textContent, e.currentTarget, '🔊 Read it to me'));
+
+  // -------------------------------------------------------------- submit
+  async function submitAll() {
+    const phone = $('phone').value.trim(), email = $('email').value.trim();
+    const err = $('formError');
+    err.classList.add('hidden');
+    if (!phone && !email) {
+      err.textContent = 'Please type a phone number or an email so they can reach you.';
+      err.classList.remove('hidden');
+      return;
+    }
+    const btn = $('submitBtn');
+    btn.disabled = true; btn.textContent = 'Sending…';
+    try {
+      startFailed = false;
+      await ensureSubmission();
+      if (!submissionId) throw new Error('no submission');
+      const d = await fetchJSON(`/api/v1/submission/${submissionId}/details`, {
+        phone: phone || null, email: email || null,
+        address: $('address').value.trim() || null,
+        postcode: $('postcode').value.trim() || null,
+        preferredTimeslot: $('timeslot').value || null
+      }, 20000);
+      if (!d.ok) throw new Error('details ' + d.status);
+      const s = await fetchJSON(`/api/v1/submission/${submissionId}/submit`, {}, 20000);
+      if (!s.ok) throw new Error('submit ' + s.status);
+      const j = await s.json();
+      $('doneMsg').textContent = j.message || 'Your request has been sent. A tradesperson will contact you soon.';
+      showScreen('done');
+    } catch (e) {
+      console.error(e);
+      err.textContent = 'Sorry, we could not send that just now. Please tap the button again in a minute.';
+      err.classList.remove('hidden');
+    } finally {
+      btn.disabled = false; btn.textContent = '✅ Send to Tradesperson';
+    }
+  }
+  $('submitBtn').addEventListener('click', submitAll);
+
+  // ---------------------------------------------------------------- start
+  sendBtn.addEventListener('click', send);
+  textEl.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && !e.shiftKey && window.innerWidth > 700) { e.preventDefault(); send(); }
+  });
+  if (!navigator.mediaDevices || !window.MediaRecorder) {
+    micBtn.disabled = true;
+    micBtn.textContent = '🎤 Speaking not available – please type';
+  }
+  textEl.addEventListener('focus', () => ensureSubmission());
+  setStep(1);
+  setPrompt(GREETING);
+  $('chooseTalk').addEventListener('click', () => {
+    chosen = true; setStep(2); ensureSubmission();
+    if (recState === 'idle') startRecording();
+  });
+  $('chooseType').addEventListener('click', () => {
+    chosen = true; setStep(2); ensureSubmission();
+    setTimeout(() => textEl.focus(), 100);
+  });
+})();
+</script>
 </body>
 </html>
