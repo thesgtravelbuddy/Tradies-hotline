@@ -616,21 +616,9 @@ app.post('/api/v1/submission/:id/details', async (req, res) => {
       return res.status(400).json({ error: 'Phone or email is required' });
     }
 
-    // Validate postcode if provided
-    if (postcode) {
-      try {
-        const mapResponse = await axios.get('https://maps.googleapis.com/maps/api/geocode/json', {
-          params: {
-            address: `${postcode} AU`,
-            key: process.env.GOOGLE_MAPS_API_KEY
-          }
-        });
-        if (!mapResponse.data.results.length) {
-          return res.status(400).json({ error: 'Invalid postcode' });
-        }
-      } catch (err) {
-        console.error('Postcode validation error:', err.message);
-      }
+    // Validate postcode if provided (Australian postcodes are 4 digits; no paid geocoding call needed)
+    if (postcode && !/^\d{4}$/.test(String(postcode).trim())) {
+      return res.status(400).json({ error: 'Invalid postcode' });
     }
 
     const result = await pool.query(`
