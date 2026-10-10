@@ -147,7 +147,9 @@
     .prompt.thinking { color: var(--muted); font-style: italic; font-weight: 500; }
     .btn-link { background: none; color: var(--muted); font-size: 19px; font-weight: 700; min-height: 48px; text-decoration: underline; }
     footer { text-align: center; color: var(--muted); font-size: 16px; padding: 10px; }
-  </style>
+    @keyframes nudge { 0%,100% { transform: scale(1); } 50% { transform: scale(1.05); } }
+  .btn-done.pulse { animation: nudge 1.4s ease-in-out infinite; }
+</style>
 </head>
 <body>
   <div class="app">
@@ -337,6 +339,7 @@
       messages.push({ role: 'assistant', content: data.content });
       questionNo++;
       doneBtn.classList.remove('hidden');
+      if (data.wrapUp) { doneBtn.classList.add('pulse'); setTimeout(() => doneBtn.scrollIntoView({ behavior: 'smooth', block: 'center' }), 600); }
       setPrompt(data.content);
       if (autoRead) speak(data.content);
     } catch (e) {

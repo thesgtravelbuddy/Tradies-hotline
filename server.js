@@ -180,6 +180,39 @@ Your job:
   }
 }
 
+// "I don't know" handling: accept the first, then wrap up kindly instead of frustrating the customer.
+const IDK_RE = /\b(i\s*(do\s*not|don'?t|dont)\s*know|dunno|no\s*idea|not\s*sure|unsure|no\s*clue|can'?t\s*say|can'?t\s*tell|couldn'?t\s*say|haven'?t\s*got\s*a\s*clue)\b/i;
+const SAFETY_Q_RE = /\b(gas|smoke|smell|spark|burn|shock|flood|sewage|live wire|power ?line|fire)\b/i;
+function isDontKnow(text) {
+  const t = String(text || '').trim();
+  return t.split(/\s+/).length <= 8 && IDK_RE.test(t);
+}
+// Count "I don't know" answers to ordinary questions. Answers to safety questions are not counted.
+function countDontKnows(history) {
+  let n = 0, safetyUnknown = false;
+  for (let i = 0; i < history.length; i++) {
+    const m = history[i];
+    if (m.role !== 'user' || !isDontKnow(m.content)) continue;
+    const prevAssistant = i > 0 && history[i - 1].role === 'assistant' ? history[i - 1].content : '';
+    if (SAFETY_Q_RE.test(prevAssistant)) { if (i === history.length - 1) safetyUnknown = true; continue; }
+    n++;
+  }
+  return { n, safetyUnknown };
+}
+const IDK_LIMIT = 2;
+function idkInstruction(n, safetyUnknown) {
+  if (safetyUnknown) {
+    return 'The customer said they are not sure about a safety question. Treat "not sure" as possibly yes: gently give the safety advice from your instructions in one or two short sentences (stay clear, and call 000 or the gas emergency line if in doubt), then carry on.';
+  }
+  if (n >= IDK_LIMIT) {
+    return 'The customer has now said they do not know twice. STOP asking questions. Reply in two short, kind sentences: say "That\'s no problem at all" and that someone from the team will contact them to sort out the details. Then tell them to tap the Next button when ready. Do not ask any more questions.';
+  }
+  if (n === 1) {
+    return 'The customer said they do not know. Be soft and a little apologetic. Start with a few reassuring words, then ask ONE different, easier question in this gentle style: "I\'m sorry to ask, but would you happen to know ...?" Keep it to two short sentences. Do not repeat the question they could not answer.';
+  }
+  return '';
+}
+
 // Database initialization
 async function initializeDatabase() {
   try {
@@ -248,6 +281,19 @@ async function initializeDatabase() {
         matched BOOLEAN,
         top_score REAL,
         hits JSONB,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+
+      -- Every email we try to send (so nothing is lost if email is not set up yet)
+      CREATE TABLE IF NOT EXISTS notifications (
+        id SERIAL PRIMARY KEY,
+        submission_id INTEGER,
+        kind VARCHAR(30),
+        to_email VARCHAR(255),
+        subject TEXT,
+        urgency VARCHAR(20),
+        status VARCHAR(30),
+        error TEXT,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
 
@@ -494,9 +540,13 @@ app.post('/api/v1/chat', async (req, res) => {
       'Ask exactly ONE short question at a time (maximum 2 short sentences in total). ' +
       'Never use lists, bullet points, numbering, markdown, bold text, headings or emojis. ' +
       'Do not diagnose or give repair instructions; just gather useful facts for the tradesperson.';
+    const idk = countDontKnows(history);
+    const idkNote = idkInstruction(idk.n, idk.safetyUnknown);
+    const wrapUp = !idk.safetyUnknown && idk.n >= IDK_LIMIT;
     const groqMessages = [
       { role: 'system', content: systemPrompt },
       { role: 'system', content: STYLE },
+      ...(idkNote ? [{ role: 'system', content: idkNote }] : []),
       ...history.map(msg => ({
         role: msg.role === 'user' ? 'user' : 'assistant',
         content: msg.content.trim()
@@ -531,6 +581,7 @@ app.post('/api/v1/chat', async (req, res) => {
     res.json({
       role: 'assistant',
       content: assistantMessage,
+      wrapUp,
       timestamp: new Date().toISOString()
     });
   } catch (error) {
@@ -611,7 +662,7 @@ app.post('/api/v1/summary', async (req, res) => {
             role: 'system',
             content:
               'You write a short summary of a customer\'s home trade problem for an elderly person to read on a phone. ' +
-              'Use very simple everyday words and short sentences. Do not diagnose. Do not invent details; if something is unknown say "not said". ' +
+              'Use very simple everyday words and short sentences. Do not diagnose. Do not invent details; if something is unknown say "not said", or "customer not sure" if the customer said they did not know. ' +
               'Reply with ONLY JSON like {"headline":"...","points":[{"label":"The problem","text":"..."},{"label":"Where","text":"..."},{"label":"How long","text":"..."},{"label":"How urgent","text":"..."},{"label":"Photos","text":"..."}]}. ' +
               'Headline: one short sentence. Each text: at most 12 words. Omit a point only if truly nothing is known.'
           },
@@ -744,6 +795,101 @@ app.get('/api/v1/tradsmen', async (req, res) => {
 });
 
 // Submit completed submission (send emails, finalize)
+
+// ---------------------------------------------------------------- notifications
+// Email goes out through Resend (https://resend.com). Needs RESEND_API_KEY and MAIL_FROM in Vercel.
+// Until then every message is recorded in the notifications table with status "not_configured".
+const esc = (t) => String(t == null ? '' : t).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const URGENCY_RANK = { flexible: 0, this_week: 1, same_day: 2, emergency: 3 };
+const URGENCY_LABEL = { emergency: 'URGENT - EMERGENCY', same_day: 'URGENT - SAME DAY', this_week: 'This week', flexible: 'Flexible' };
+const EMERGENCY_WORDS = /\b(gas smell|smell(s)? (of )?gas|smoke|sparking|sparks|burning smell|on fire|flood(ing|ed)?|burst|sewage|electric shock|got a shock|live wire|power ?line|no hot water and (a )?baby|fallen tree|tree (on|through)|collapse)/i;
+
+async function assessUrgency(customerText) {
+  let level = 'flexible', why = [], issues = [];
+  try {
+    const rows = await loadKnowledge();
+    const hits = pickRelevant(rows, customerText, 3);
+    for (const h of hits) {
+      issues.push(`${h.issue_name} (${h.trade})`);
+      const u = h.urgency_default || 'flexible';
+      if ((URGENCY_RANK[u] ?? 0) > URGENCY_RANK[level]) level = u;
+      if (u === 'emergency' || u === 'same_day') for (const x of (h.emergency_indicators || []).slice(0, 2)) why.push(x);
+    }
+  } catch (_) { /* knowledge unavailable: fall back to word check */ }
+  const m = String(customerText).match(EMERGENCY_WORDS);
+  if (m) { level = 'emergency'; why.unshift(`Customer mentioned "${m[0]}"`); }
+  return { level, why: [...new Set(why)].slice(0, 3), issues };
+}
+
+async function sendEmail({ to, subject, text, html }) {
+  // Option 1: Gmail (or any SMTP) using an app password. Option 2: Resend. Whichever is configured is used.
+  if (process.env.GMAIL_USER && process.env.GMAIL_APP_PASSWORD) {
+    try {
+      const nodemailer = (await import('nodemailer')).default;
+      const transporter = nodemailer.createTransport({
+        host: process.env.SMTP_HOST || 'smtp.gmail.com',
+        port: parseInt(process.env.SMTP_PORT) || 465,
+        secure: process.env.SMTP_SECURE ? process.env.SMTP_SECURE === 'true' : true,
+        auth: { user: process.env.GMAIL_USER, pass: process.env.GMAIL_APP_PASSWORD },
+        tls: process.env.SMTP_HOST ? { rejectUnauthorized: false } : undefined,
+        connectionTimeout: 8000, greetingTimeout: 8000, socketTimeout: 10000
+      });
+      await withTimeout(transporter.sendMail({
+        from: `"Tradies Hotline" <${process.env.GMAIL_USER}>`, to, subject, text, html
+      }), 12000, 'Email send');
+      return { status: 'sent' };
+    } catch (e) { return { status: 'failed', error: String(e.message || e).slice(0, 200) }; }
+  }
+  if (!process.env.RESEND_API_KEY || !process.env.MAIL_FROM) return { status: 'not_configured' };
+  try {
+    const r = await withTimeout(fetch((process.env.RESEND_API_BASE || 'https://api.resend.com') + '/emails', {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${process.env.RESEND_API_KEY}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ from: process.env.MAIL_FROM, to: [to], subject, text, html })
+    }), 8000, 'Email send');
+    if (!r.ok) return { status: 'failed', error: `HTTP ${r.status}: ${(await r.text()).slice(0, 200)}` };
+    return { status: 'sent' };
+  } catch (e) { return { status: 'failed', error: e.message }; }
+}
+
+async function logNotification(subId, kind, to, subject, urgency, result) {
+  try {
+    await pool.query('INSERT INTO notifications (submission_id, kind, to_email, subject, urgency, status, error) VALUES ($1,$2,$3,$4,$5,$6,$7)',
+      [subId, kind, to || null, subject, urgency, result.status, result.error || null]);
+  } catch (e) { console.error('notification log:', e.message); }
+}
+
+function buildTradieEmail(sub, urgency, customerLines, media) {
+  const urgent = urgency.level === 'emergency' || urgency.level === 'same_day';
+  const label = URGENCY_LABEL[urgency.level];
+  const loc = sub.postcode ? ` - ${sub.postcode}` : '';
+  const job = urgent && urgency.why[0] ? urgency.why[0] : (urgency.issues[0] ? urgency.issues[0].replace(/\s*\(.*\)$/, '') : 'New job request');
+  const subject = `${urgent ? '[URGENT] ' : ''}${job}${loc}`;
+  const contact = [
+    ['Phone', sub.phone], ['Email', sub.email], ['Address', sub.address], ['Postcode', sub.postcode],
+    ['Preferred time', sub.preferred_timeslot]
+  ].filter(x => x[1]);
+  const lines = [];
+  lines.push(urgent ? `*** ${label} - please contact the customer as soon as you can ***` : `Priority: ${label}`);
+  if (urgency.why.length) lines.push('Why: ' + urgency.why.join('; '));
+  lines.push('', 'CUSTOMER', ...contact.map(([k, v]) => `${k}: ${v}`));
+  if (urgency.issues.length) lines.push('', 'Looks like: ' + urgency.issues.join(' / ') + ' (automatic guess, not a diagnosis)');
+  lines.push('', 'WHAT THE CUSTOMER TOLD US', ...customerLines.map(l => '- ' + l));
+  if (media.length) lines.push('', 'PHOTOS', ...media.map(m => m.file_url));
+  lines.push('', `Request #${sub.id}`);
+  const text = lines.join('\n');
+  const html = `<div style="font-family:Arial,sans-serif;max-width:600px">` +
+    (urgent ? `<div style="background:#b00020;color:#fff;padding:12px 16px;font-size:18px;font-weight:bold">${esc(label)} - contact the customer as soon as you can</div>`
+            : `<div style="background:#e8f0fe;padding:10px 16px;font-weight:bold">Priority: ${esc(label)}</div>`) +
+    (urgency.why.length ? `<p><b>Why:</b> ${esc(urgency.why.join('; '))}</p>` : '') +
+    `<h3>Customer</h3><table>${contact.map(([k, v]) => `<tr><td style="padding:2px 12px 2px 0"><b>${esc(k)}</b></td><td>${esc(v)}</td></tr>`).join('')}</table>` +
+    (urgency.issues.length ? `<p><b>Looks like:</b> ${esc(urgency.issues.join(' / '))} <i>(automatic guess, not a diagnosis)</i></p>` : '') +
+    `<h3>What the customer told us</h3><ul>${customerLines.map(l => `<li>${esc(l)}</li>`).join('')}</ul>` +
+    (media.length ? `<h3>Photos</h3><ul>${media.map(m => `<li><a href="${esc(m.file_url)}">${esc(m.filename || 'photo')}</a></li>`).join('')}</ul>` : '') +
+    `<p style="color:#666">Request #${esc(sub.id)}</p></div>`;
+  return { subject, text, html };
+}
+
 app.post('/api/v1/submission/:id/submit', async (req, res) => {
   try {
     const { id } = req.params;
@@ -779,23 +925,44 @@ app.post('/api/v1/submission/:id/submit', async (req, res) => {
       }
     }
 
-    // TODO: Send emails via Zoho Mail
-    // 1. Customer confirmation email with tradsman branding
-    // 2. Tradsman notification with full details
+    // Work out urgency and what the customer said (their own words, with "not sure" answers marked)
+    const customerLines = messagesResult.rows.filter(m => m.role === 'user').map(m => isDontKnow(m.content) ? `${m.content} (customer not sure)` : m.content);
+    const urgency = await assessUrgency(customerLines.join(' '));
 
-    // Update submission status
+    // Who gets it: the chosen tradie, otherwise the admin inbox until assignment rules exist
+    let recipient = null, recipientKind = 'tradie';
+    if (submission.tradsman_id) {
+      const t = await pool.query('SELECT email FROM tradsmen WHERE id = $1', [submission.tradsman_id]);
+      recipient = t.rows[0]?.email || null;
+    }
+    if (!recipient) { recipient = process.env.ADMIN_NOTIFY_EMAIL || process.env.GMAIL_USER || null; recipientKind = 'admin'; }
+
+    const mail = buildTradieEmail(submission, urgency, customerLines, mediaResult.rows);
+    let sent = { status: 'no_recipient' };
+    if (recipient) sent = await sendEmail({ to: recipient, ...mail });
+    await logNotification(id, recipientKind, recipient, mail.subject, urgency.level, sent);
+
+    // Short confirmation to the customer if they gave an email address
+    if (submission.email) {
+      const c = { subject: 'We have your request', text: `Thanks - we have your request (#${id}) and will pass it on. Someone will contact you soon. If anything is dangerous, such as a gas smell, smoke or water near electrics, call 000 now.` };
+      const cs = await sendEmail({ to: submission.email, ...c });
+      await logNotification(id, 'customer', submission.email, c.subject, urgency.level, cs);
+    }
+
     await pool.query(
       `UPDATE submissions
-       SET status = 'submitted', submitted_at = CURRENT_TIMESTAMP, email_sent_at = CURRENT_TIMESTAMP
+       SET status = 'submitted', submitted_at = CURRENT_TIMESTAMP, issue_severity = $2,
+           email_sent_at = CASE WHEN $3 THEN CURRENT_TIMESTAMP ELSE email_sent_at END
        WHERE id = $1`,
-      [id]
+      [id, urgency.level, sent.status === 'sent']
     );
 
     res.json({
       success: true,
       submissionId: id,
       message: 'Your request has been submitted. The tradsman will contact you soon.',
-      emailSent: tradsmanEmail ? true : false
+      urgent: urgency.level === 'emergency' || urgency.level === 'same_day',
+      emailSent: sent.status === 'sent'
     });
   } catch (error) {
     console.error('Submission error:', error);
@@ -1003,6 +1170,13 @@ app.get('/api/v1/health', (req, res) => {
     groq: process.env.GROQ_API_KEY ? 'configured' : 'not configured',
     spaces: process.env.DO_SPACES_BUCKET ? 'configured' : 'not configured'
   });
+});
+
+app.get('/api/v1/admin/notifications', verifyToken, async (req, res) => {
+  try {
+    const r = await pool.query('SELECT * FROM notifications ORDER BY created_at DESC LIMIT 100');
+    res.json(r.rows);
+  } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
 // Where the knowledge is thin: chats that matched nothing, or only weakly (admin only)
