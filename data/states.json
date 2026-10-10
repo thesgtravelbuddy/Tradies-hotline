@@ -1,0 +1,710 @@
+{
+ "states": {
+  "VIC": {
+   "gas_emergency": [
+    {
+     "name": "Multinet Gas (inner/outer east Melbourne, Yarra Ranges, S Gippsland)",
+     "number": "132 691",
+     "url": "https://www.energysafe.vic.gov.au/safety-education/emergencies/gas-emergency"
+    },
+    {
+     "name": "Australian Gas Networks (N & SE Melbourne, N & E Victoria)",
+     "number": "1800 427 532 (1800 GAS LEAK)",
+     "url": "https://www.energysafe.vic.gov.au/safety-education/emergencies/gas-emergency"
+    },
+    {
+     "name": "AusNet Services gas (central & western Victoria)",
+     "number": "13 67 07",
+     "url": "https://www.energysafe.vic.gov.au/safety-education/emergencies/gas-emergency"
+    },
+    {
+     "name": "Fire/immediate danger",
+     "number": "000",
+     "url": "https://www.energysafe.vic.gov.au/safety-education/emergencies/gas-emergency",
+     "note": "ESV advice: no flames/switches, open doors and windows, shut off gas at meter if safe, call network; LPG: supplier number on cylinder"
+    }
+   ],
+   "electricity_emergency": [
+    {
+     "name": "Powercor (western Vic)",
+     "number": "13 24 12",
+     "url": "https://www.powercor.com.au/"
+    },
+    {
+     "name": "CitiPower (Melbourne CBD/inner)",
+     "number": "13 12 80",
+     "url": "https://www.citipower.com.au/"
+    },
+    {
+     "name": "United Energy (SE Melbourne/Mornington)",
+     "number": "132 099",
+     "url": "https://www.unitedenergy.com.au/"
+    },
+    {
+     "name": "Jemena Electricity (NW Melbourne)",
+     "number": "131 626",
+     "url": "https://www.jemena.com.au/"
+    },
+    {
+     "name": "AusNet Services electricity (east/north Vic)",
+     "number": "unverified",
+     "url": "https://www.ausnetservices.com.au/",
+     "note": "number not on page read"
+    }
+   ],
+   "water_sewer_emergency": [
+    {
+     "name": "Yarra Valley Water",
+     "number": "13 27 62",
+     "url": "https://www.yvw.com.au/contact-us"
+    },
+    {
+     "name": "South East Water",
+     "number": "13 28 12",
+     "url": "https://www.southeastwater.com.au/contact-us"
+    },
+    {
+     "name": "City West Water",
+     "number": "unverified",
+     "url": "https://www.citywestwater.com.au/",
+     "note": "robots blocked"
+    }
+   ],
+   "ses": {
+    "name": "VICSES",
+    "number": "132 500",
+    "note": "Floods/storms; life-threatening = 000",
+    "url": "https://www.ses.vic.gov.au/"
+   },
+   "regulators": {
+    "electrical": {
+     "name": "Energy Safe Victoria (ESV)",
+     "url": "https://www.energysafe.vic.gov.au/community-safety/working-tradespeople/electrical-workers",
+     "licence_note": "Electrical installation work must be done through an ESV-registered electrical contractor/licensed electrician, who must issue a Certificate of Electrical Safety; DIY electrical work is illegal. ESV 1800 800 158 / 03 9203 9700."
+    },
+    "plumbing_gas": {
+     "name": "Building and Plumbing Commission (formerly VBA) for plumbers; Energy Safe Victoria for gasfitters",
+     "url": "https://www.energysafe.vic.gov.au/community-safety/working-tradespeople/gasfitters",
+     "licence_note": "ESV: licensed gasfitter required for any gas installation, repair or renovation, hot water systems, gas heaters, disconnecting/relocating appliances, Type-A servicing and CO checks. BPC licenses/registers plumbers (scope detail unverified)."
+    },
+    "building": {
+     "name": "Building and Plumbing Commission (bpc.vic.gov.au)",
+     "url": "https://www.bpc.vic.gov.au/",
+     "licence_note": "Registered builder needed for domestic building work (BPC handles building registration, owner-builder eligibility). Roofing/waterproofing specifics unverified."
+    },
+    "asbestos": {
+     "name": "WorkSafe Victoria (EPA Victoria for waste: page not read)",
+     "url": "https://www.worksafe.vic.gov.au/asbestos",
+     "licence_note": "WorkSafe page: asbestos removal should be done by a licensed removalist; thresholds not read. WorkSafe 1800 136 089."
+    }
+   },
+   "poisons": "13 11 26 (Poisons Information Centre; national; seen on https://www.sahealth.sa.gov.au/)",
+   "wildlife": [
+    {
+     "name": "Wildlife Victoria 24/7",
+     "number": "(03) 8400 7300",
+     "url": "https://www.wildlifevictoria.org.au/"
+    }
+   ]
+  },
+  "NSW": {
+   "gas_emergency": [
+    {
+     "name": "Jemena Gas (NSW)",
+     "number": "131 909",
+     "url": "https://www.jemena.com.au/",
+     "note": "page lists gas faults and emergencies 131 909"
+    },
+    {
+     "name": "Australian Gas Networks (regional NSW)",
+     "number": "1800 427 532",
+     "url": "https://www.agig.com.au/emergency-contacts"
+    }
+   ],
+   "electricity_emergency": [
+    {
+     "name": "Ausgrid",
+     "number": "13 13 88",
+     "url": "https://www.ausgrid.com.au/Outages/Emergency"
+    },
+    {
+     "name": "Endeavour Energy",
+     "number": "131 003",
+     "url": "https://www.endeavourenergy.com.au/"
+    },
+    {
+     "name": "Essential Energy",
+     "number": "13 20 80",
+     "url": "https://www.essentialenergy.com.au/"
+    }
+   ],
+   "water_sewer_emergency": [
+    {
+     "name": "Sydney Water",
+     "number": "13 20 90",
+     "url": "https://www.sydneywater.com.au/contact-us.html"
+    },
+    {
+     "name": "Hunter Water",
+     "number": "1300 657 000",
+     "url": "https://www.hunterwater.com.au/contact-us"
+    }
+   ],
+   "ses": {
+    "name": "NSW SES",
+    "number": "132 500",
+    "note": "floods/storms/tsunami; 000 for life-threatening",
+    "url": "https://www.ses.nsw.gov.au/"
+   },
+   "regulators": {
+    "electrical": {
+     "name": "NSW Fair Trading / Building Commission NSW",
+     "url": "https://www.nsw.gov.au/business-and-economy/licences-and-credentials/building-and-trade-licences-and-registrations/categories-of-work",
+     "licence_note": "Electrical work needs a licence/certificate regardless of job cost."
+    },
+    "plumbing_gas": {
+     "name": "Building Commission NSW (13 27 00)",
+     "url": "https://www.nsw.gov.au/business-and-economy/licences-and-credentials/building-and-trade-licences-and-registrations/plumbing-draining-and-gasfitting",
+     "licence_note": "Licence/certificate required for any plumbing, draining or gasfitting (incl LPG), regardless of cost; fines up to $22,000 individual / $110,000 company."
+    },
+    "building": {
+     "name": "Building Commission NSW",
+     "url": "https://www.nsw.gov.au/business-and-economy/licences-and-credentials/building-and-trade-licences-and-registrations/categories-of-work",
+     "licence_note": "Residential building work over $5,000 (labour+materials incl GST) needs a contractor licence; waterproofing is trade work needing a licence above the same $5,000 threshold. Roofing: unverified (treated as building work)."
+    },
+    "asbestos": {
+     "name": "SafeWork NSW (13 10 50)",
+     "url": "https://www.safework.nsw.gov.au/hazards-a-z/asbestos",
+     "licence_note": "Licensed asbestos professional required for any friable asbestos and non-friable over 10 sq m; recommended for any amount."
+    }
+   },
+   "poisons": "13 11 26 (Poisons Information Centre; national; seen on https://www.sahealth.sa.gov.au/)",
+   "wildlife": [
+    {
+     "name": "WIRES 24/7",
+     "number": "1300 094 737",
+     "url": "https://www.wires.org.au/"
+    }
+   ]
+  },
+  "QLD": {
+   "gas_emergency": [
+    {
+     "name": "Australian Gas Networks (QLD)",
+     "number": "1800 427 532",
+     "url": "https://www.agig.com.au/emergency-contacts"
+    },
+    {
+     "name": "Wide Bay Pipeline (Maryborough-Rockhampton)",
+     "number": "1800 017 000",
+     "url": "https://www.agig.com.au/emergency-contacts"
+    }
+   ],
+   "electricity_emergency": [
+    {
+     "name": "Energex (SE Qld) life-threatening / fallen lines",
+     "number": "000 or 13 19 62",
+     "url": "https://www.energex.com.au/"
+    },
+    {
+     "name": "Energex power outage",
+     "number": "13 62 62",
+     "url": "https://www.energex.com.au/"
+    },
+    {
+     "name": "Ergon Energy (regional Qld) life-threatening",
+     "number": "000 or 13 16 70",
+     "url": "https://www.ergon.com.au/"
+    },
+    {
+     "name": "Ergon faults",
+     "number": "13 22 96",
+     "url": "https://www.ergon.com.au/"
+    }
+   ],
+   "water_sewer_emergency": [
+    {
+     "name": "Urban Utilities",
+     "number": "13 23 64",
+     "url": "https://www.brisbane.qld.gov.au/environment-and-water/water-and-air-quality/water-supply-and-sewerage",
+     "note": "Council page lists 13 23 64 for faults/emergencies and a sewage-overflow number printed as 12 23 64 (likely typo); confirm."
+    },
+    {
+     "name": "Unitywater",
+     "number": "unverified",
+     "url": "https://www.unitywater.com/",
+     "note": "1300 086 489 is general line, not confirmed 24/7"
+    }
+   ],
+   "ses": {
+    "name": "Qld SES",
+    "number": "132 500",
+    "note": "non-life-threatening severe-weather help; 000 if life-threatening; online request 132500.qld.gov.au",
+    "url": "https://www.ses.qld.gov.au/ses-assistance"
+   },
+   "regulators": {
+    "electrical": {
+     "name": "Electrical Safety Office (Qld)",
+     "url": "https://www.electricalsafety.qld.gov.au/ddiy",
+     "licence_note": "Licensed electrician required for ANY electrical work (power points, switches, fan swaps, hard-wired appliances)."
+    },
+    "plumbing_gas": {
+     "name": "QBCC (plumbing, drainage, gas fitting licensing)",
+     "url": "https://www.qbcc.qld.gov.au/",
+     "licence_note": "QBCC licence info tool and plumbing pages; detail unverified"
+    },
+    "building": {
+     "name": "Queensland Building and Construction Commission (QBCC)",
+     "url": "https://www.qbcc.qld.gov.au/",
+     "licence_note": "QBCC licence required for building work above threshold; detail unverified"
+    },
+    "asbestos": {
+     "name": "WorkSafe Queensland / Office of Industrial Relations",
+     "url": "https://www.worksafe.qld.gov.au/",
+     "licence_note": "Phone 1300 362 128; asbestos removal licensing page linked"
+    }
+   },
+   "poisons": "13 11 26 (Poisons Information Centre; national; seen on https://www.sahealth.sa.gov.au/)",
+   "wildlife": [
+    {
+     "name": "RSPCA Qld wildlife hotline 1300 ANIMAL",
+     "number": "1300 264 625",
+     "url": "https://www.rspcaqld.org.au/what-we-do/care-for-wildlife/injured-wildlife"
+    }
+   ]
+  },
+  "SA": {
+   "gas_emergency": [
+    {
+     "name": "Australian Gas Networks (SA) 24h",
+     "number": "1800 427 532 (1800 GAS LEAK)",
+     "url": "https://www.sa.gov.au/topics/energy-and-environment/using-electricity-and-gas-safely/gas-leaks",
+     "note": "SA Govt: licensed gas fitter required for work after meter; call 000 if gas on fire"
+    },
+    {
+     "name": "Riverland Pipeline",
+     "number": "1800 808 526",
+     "url": "https://www.agig.com.au/emergency-contacts"
+    }
+   ],
+   "electricity_emergency": [
+    {
+     "name": "SA Power Networks faults/emergencies",
+     "number": "13 13 66",
+     "url": "https://www.sapowernetworks.com.au/"
+    }
+   ],
+   "water_sewer_emergency": [
+    {
+     "name": "SA Water 24/7",
+     "number": "1300 729 283 (1300 SA WATER)",
+     "url": "https://www.sawater.com.au/works-and-faults"
+    }
+   ],
+   "ses": {
+    "name": "SA SES",
+    "number": "132 500",
+    "note": "page text minimal",
+    "url": "https://www.ses.sa.gov.au/"
+   },
+   "regulators": {
+    "electrical": {
+     "name": "Consumer and Business Services (CBS) licensing",
+     "url": "https://www.sa.gov.au/topics/business-and-trade/licensing/building-and-trades/licensing",
+     "licence_note": "Plumbing/gas fitting/electrical businesses need a PGE contractor licence; workers must be registered plumber/gas fitter/electrician. CBS 131 882 opt 4."
+    },
+    "plumbing_gas": {
+     "name": "Consumer and Business Services (CBS)",
+     "url": "https://www.sa.gov.au/",
+     "licence_note": "Licensed gas fitter required for work between meter outlet and appliances (SA Govt gas-leak page)"
+    },
+    "building": {
+     "name": "CBS (Building Work Contractors Act)",
+     "url": "https://www.cbs.sa.gov.au/",
+     "licence_note": "unverified detail"
+    },
+    "asbestos": {
+     "name": "SafeWork SA",
+     "url": "https://www.safework.sa.gov.au/",
+     "licence_note": "1300 365 255; asbestos removal notification"
+    }
+   },
+   "poisons": "13 11 26 (Poisons Information Centre; national; seen on https://www.sahealth.sa.gov.au/)",
+   "wildlife": [
+    {
+     "name": "Adelaide Koala and Wildlife Centre (wildlife vet)",
+     "number": "(08) 8297 2455",
+     "url": "https://pir.sa.gov.au/wildlife"
+    },
+    {
+     "name": "Emergency Animal Disease Hotline (sick/dead wild animals)",
+     "number": "1800 675 888",
+     "url": "https://pir.sa.gov.au/wildlife",
+     "note": "SA page: do not handle bats, snakes, flying foxes; call a wildlife organisation; no number given"
+    }
+   ]
+  },
+  "WA": {
+   "gas_emergency": [
+    {
+     "name": "ATCO Gas",
+     "number": "13 13 52",
+     "url": "https://www.synergy.net.au/-/media/Documents/Policies/Synergy-gas-safety-awareness-factsheet.pdf",
+     "note": "24h; 000 if life/property under threat"
+    },
+    {
+     "name": "Dampier Bunbury Pipeline",
+     "number": "1800 019 919",
+     "url": "https://www.agig.com.au/emergency-contacts"
+    }
+   ],
+   "electricity_emergency": [
+    {
+     "name": "Western Power faults and emergencies 24h",
+     "number": "13 13 51",
+     "url": "https://www.westernpower.com.au/about/contact-us/"
+    }
+   ],
+   "water_sewer_emergency": [
+    {
+     "name": "Water Corporation 24/7",
+     "number": "13 13 75",
+     "url": "https://www.watercorporation.com.au/about-us/contact-us"
+    }
+   ],
+   "ses": {
+    "name": "DFES SES",
+    "number": "132 500",
+    "note": "WA SES page blocked; number seen as SES number on other states' pages and agig.com.au - treat as unverified for WA",
+    "url": "https://www.agig.com.au/emergency-contacts"
+   },
+   "regulators": {
+    "electrical": {
+     "name": "Building and Energy (Electrical Licensing Board; Director of Energy Safety)",
+     "url": "https://www.wa.gov.au/organisation/building-and-energy/building-and-energy",
+     "licence_note": "1300 489 099; licensed electrician required (detail unverified)"
+    },
+    "plumbing_gas": {
+     "name": "Building and Energy (Plumbers Licensing Board; gas fitters)",
+     "url": "https://www.wa.gov.au/organisation/building-and-energy/building-and-energy",
+     "licence_note": "unverified"
+    },
+    "building": {
+     "name": "Building Commissioner (Building and Energy)",
+     "url": "https://www.wa.gov.au/organisation/building-and-energy/building-and-energy",
+     "licence_note": "regulates builders, surveyors, engineers, painters"
+    },
+    "asbestos": {
+     "name": "WorkSafe WA (Dept of Local Government, Industry Regulation and Safety)",
+     "url": "https://www.wa.gov.au/government/multi-step-guides/asbestos-licensing",
+     "licence_note": "Licence needed to remove any friable asbestos (Class A) or more than 10 sq m non-friable (Class A/B). Licensing 1300 424 091."
+    }
+   },
+   "poisons": "13 11 26 (Poisons Information Centre; national; seen on https://www.sahealth.sa.gov.au/)",
+   "wildlife": [
+    {
+     "name": "Wildcare Helpline",
+     "number": "08 9474 9055",
+     "url": "https://www.dbca.wa.gov.au/wildcare"
+    }
+   ]
+  },
+  "TAS": {
+   "gas_emergency": [
+    {
+     "name": "TasGas Networks",
+     "number": "1802 111",
+     "url": "https://tasgasnetworks.com.au/emergency-information",
+     "note": "24h; 000 if fire; licensed gas fitter for work after meter"
+    }
+   ],
+   "electricity_emergency": [
+    {
+     "name": "TasNetworks electrical emergencies (fallen lines, shocks)",
+     "number": "132 004",
+     "url": "https://www.tasnetworks.com.au/"
+    }
+   ],
+   "water_sewer_emergency": [
+    {
+     "name": "TasWater 24h faults",
+     "number": "136 992",
+     "url": "https://www.taswater.com.au/"
+    }
+   ],
+   "ses": {
+    "name": "Tas SES",
+    "number": "132 500",
+    "note": "000 for life-threatening",
+    "url": "https://www.ses.tas.gov.au/"
+   },
+   "regulators": {
+    "electrical": {
+     "name": "Consumer Affairs Tasmania (from 1 Oct 2026; formerly CBOS)",
+     "url": "https://www.cbos.tas.gov.au/",
+     "licence_note": "Electrical licences: practitioner, contractor, provisional, restricted"
+    },
+    "plumbing_gas": {
+     "name": "Building Standards Tasmania (plumbing); Consumer Affairs Tasmania (gas)",
+     "url": "https://www.cbos.tas.gov.au/",
+     "licence_note": "Plumbing and gas-fitting licences required (practitioner/contractor/provisional)"
+    },
+    "building": {
+     "name": "Building Standards Tasmania",
+     "url": "https://www.cbos.tas.gov.au/",
+     "licence_note": "Building services provider licensing"
+    },
+    "asbestos": {
+     "name": "WorkSafe Tasmania",
+     "url": "https://worksafe.tas.gov.au/topics/licensing-permits-and-registration/asbestos-licensing/asbestos-removal-licensing",
+     "licence_note": "Asbestos removalist/assessor licensing exists; thresholds and phone not read."
+    }
+   },
+   "poisons": "13 11 26 (Poisons Information Centre; national; seen on https://www.sahealth.sa.gov.au/)",
+   "wildlife": [
+    {
+     "name": "Bonorong Wildlife Rescue (all hours)",
+     "number": "0447 264 625",
+     "url": "https://nre.tas.gov.au/wildlife-management/injured-and-orphaned-wildlife"
+    }
+   ]
+  },
+  "NT": {
+   "gas_emergency": [
+    {
+     "name": "Tanami Gas Pipeline (WA/NT transmission)",
+     "number": "1800 019 919",
+     "url": "https://www.agig.com.au/emergency-contacts"
+    }
+   ],
+   "electricity_emergency": [
+    {
+     "name": "Power and Water emergency line",
+     "number": "1800 245 090",
+     "url": "https://www.powerwater.com.au/"
+    }
+   ],
+   "water_sewer_emergency": [
+    {
+     "name": "Power and Water emergency line (also water/sewerage per page)",
+     "number": "1800 245 090",
+     "url": "https://www.powerwater.com.au/"
+    }
+   ],
+   "ses": {
+    "name": "NT SES",
+    "number": "132 500",
+    "note": "floods, storms, cyclones; 000 for emergencies",
+    "url": "https://pfes.nt.gov.au/"
+   },
+   "regulators": {
+    "electrical": {
+     "name": "NT WorkSafe (Electrical Safety Regulator)",
+     "url": "https://worksafe.nt.gov.au/licensing-and-registration/electrical-licensing/electrical-licenses-and-endorsements",
+     "licence_note": "Must hold an electrical work licence to perform or supervise electrical work."
+    },
+    "plumbing_gas": {
+     "name": "Plumbers and Drainers Licensing Board (NT); gas: unverified",
+     "url": "https://plumberslicensing.nt.gov.au/licensing",
+     "licence_note": "Advanced tradesman licence needed to contract for and carry out plumbing and draining work."
+    },
+    "building": {
+     "name": "NT Building Practitioners Board",
+     "url": "https://bpb.nt.gov.au/",
+     "licence_note": "seen in search results only; detail unverified"
+    },
+    "asbestos": {
+     "name": "NT WorkSafe 1800 019 115; Dept of Health Environmental Health 1800 095 646; NT EPA 08 8924 4218",
+     "url": "https://asbestos.nt.gov.au/contact-us",
+     "licence_note": "Asbestos removal licensing exists; thresholds not read."
+    }
+   },
+   "poisons": "13 11 26 (Poisons Information Centre; national; seen on https://www.sahealth.sa.gov.au/)",
+   "wildlife": [
+    {
+     "name": "Wildcare Inc (Darwin)",
+     "number": "08 8988 6121 or 0408 885 341",
+     "url": "https://nt.gov.au/environment/animals/report-injured-wildlife-or-rescue"
+    },
+    {
+     "name": "Wildcare Alice Springs",
+     "number": "0419 221 128",
+     "url": "https://nt.gov.au/environment/animals/report-injured-wildlife-or-rescue"
+    },
+    {
+     "name": "Wildcare Katherine",
+     "number": "0412 955 336",
+     "url": "https://nt.gov.au/environment/animals/report-injured-wildlife-or-rescue"
+    }
+   ]
+  },
+  "ACT": {
+   "gas_emergency": [
+    {
+     "name": "Evoenergy gas",
+     "number": "13 19 09",
+     "url": "https://www.evoenergy.com.au/"
+    }
+   ],
+   "electricity_emergency": [
+    {
+     "name": "Evoenergy electricity",
+     "number": "13 10 93",
+     "url": "https://www.evoenergy.com.au/"
+    }
+   ],
+   "water_sewer_emergency": [
+    {
+     "name": "Icon Water 24h (option 1 for water/sewer faults)",
+     "number": "02 6248 3111",
+     "url": "https://www.iconwater.com.au/My-Home/Emergencies-Faults-and-Outages"
+    }
+   ],
+   "ses": {
+    "name": "ACT SES (ESA)",
+    "number": "132 500",
+    "note": "000 for life-threatening",
+    "url": "https://esa.act.gov.au/"
+   },
+   "regulators": {
+    "electrical": {
+     "name": "Access Canberra / Construction Occupations Registrar (cwpl@act.gov.au, 02 6207 8096)",
+     "url": "https://www.planning.act.gov.au/professionals/regulation-and-responsibilities/construction-licences",
+     "licence_note": "Electrician licence required (Construction Occupations (Licensing) Act 2004)."
+    },
+    "plumbing_gas": {
+     "name": "Access Canberra / Construction Occupations Registrar",
+     "url": "https://www.planning.act.gov.au/professionals/regulation-and-responsibilities/construction-licences",
+     "licence_note": "Plumber/drainer/gasfitter and gas appliance worker licences required."
+    },
+    "building": {
+     "name": "Access Canberra / Construction Occupations Registrar",
+     "url": "https://www.planning.act.gov.au/professionals/regulation-and-responsibilities/construction-licences",
+     "licence_note": "Builder licence required (incl owner-builder); carpenters and bricklayers do not need a licence in ACT."
+    },
+    "asbestos": {
+     "name": "WorkSafe ACT (worksafe@act.gov.au)",
+     "url": "https://www.worksafe.act.gov.au/health-and-safety-portal/safety-topics/dangerous-goods-and-hazardous-substances/asbestos",
+     "licence_note": "Licensed removalist required to remove asbestos from any premises incl homes (no 10 sq m exception); minor routine maintenance exception only."
+    }
+   },
+   "poisons": "13 11 26 (Poisons Information Centre; national; seen on https://www.sahealth.sa.gov.au/)",
+   "wildlife": [
+    {
+     "name": "ACT Wildlife (24h)",
+     "number": "0432 300 033",
+     "url": "https://rspca-act.org.au/our-services-services/wildlife"
+    },
+    {
+     "name": "Canberra Snake Rescue and Relocation",
+     "number": "0405 405 604",
+     "url": "https://rspca-act.org.au/our-services-services/wildlife"
+    },
+    {
+     "name": "Access Canberra after hours",
+     "number": "13 22 81",
+     "url": "https://rspca-act.org.au/our-services-services/wildlife"
+    }
+   ]
+  }
+ },
+ "postcode_to_state": [
+  {
+   "from": 200,
+   "to": 299,
+   "state": "ACT"
+  },
+  {
+   "from": 800,
+   "to": 999,
+   "state": "NT"
+  },
+  {
+   "from": 1000,
+   "to": 1999,
+   "state": "NSW"
+  },
+  {
+   "from": 2000,
+   "to": 2599,
+   "state": "NSW"
+  },
+  {
+   "from": 2600,
+   "to": 2618,
+   "state": "ACT"
+  },
+  {
+   "from": 2619,
+   "to": 2898,
+   "state": "NSW"
+  },
+  {
+   "from": 2899,
+   "to": 2899,
+   "state": "NSW"
+  },
+  {
+   "from": 2900,
+   "to": 2920,
+   "state": "ACT"
+  },
+  {
+   "from": 2921,
+   "to": 2999,
+   "state": "NSW"
+  },
+  {
+   "from": 3000,
+   "to": 3999,
+   "state": "VIC"
+  },
+  {
+   "from": 4000,
+   "to": 4999,
+   "state": "QLD"
+  },
+  {
+   "from": 5000,
+   "to": 5999,
+   "state": "SA"
+  },
+  {
+   "from": 6000,
+   "to": 6797,
+   "state": "WA"
+  },
+  {
+   "from": 6798,
+   "to": 6799,
+   "state": "WA"
+  },
+  {
+   "from": 6800,
+   "to": 6999,
+   "state": "WA"
+  },
+  {
+   "from": 7000,
+   "to": 7999,
+   "state": "TAS"
+  },
+  {
+   "from": 8000,
+   "to": 8999,
+   "state": "VIC"
+  },
+  {
+   "from": 9000,
+   "to": 9999,
+   "state": "QLD"
+  }
+ ],
+ "notes": [
+  "Postcode mapping is from general knowledge (Australia Post page fetched did not show ranges) - unverified. ACT: 0200-0299, 2600-2618, 2900-2920; NT: 0800-0999; 2540 Jervis Bay uses a NSW code but is ACT territory; Queanbeyan 2620 is NSW. 2899 Norfolk Island and 6798-6799 Cocos/Christmas Island are external territories. 1000-1999 NSW, 8000-8999 VIC, 9000-9999 QLD are mostly PO boxes/large-volume receivers.",
+  "Not verified/missing: AusNet electricity number, City West Water, Hunter-area Unitywater 24h number, Qld/WA/NT/ACT detail on roofing, VIC asbestos thresholds, TAS asbestos thresholds/phone, EPA asbestos pages, NT/SA/WA SES pages (SA page minimal, WA blocked), gas in NT/ACT beyond Evoenergy, SA/WA/Qld wildlife beyond listed.",
+  "Distributor pages (Ausgrid, Energex, Essential, Endeavour, TasNetworks, SAPN) mostly gave no step-by-step fallen powerline advice; generic safe advice (stay well clear, assume live, call distributor emergency number, 000 if anyone hurt) is not quoted from a page except Energex/TasNetworks/Ergon directing fallen lines to 000/emergency numbers.",
+  "ATCO Gas 13 13 52 taken from Synergy (WA Govt-owned retailer) fact sheet and Kleenheat, not ATCO's own page. Jemena 131 909 (gas) and 131 626 (electricity) are from jemena.com.au (gas network NSW, electricity network NW Melbourne). Evoenergy lists electricity 13 10 93 and gas 13 19 09.",
+  "Only record numbers seen on pages fetched at 2026-10-10; mark 'unverified' otherwise."
+ ]
+}
