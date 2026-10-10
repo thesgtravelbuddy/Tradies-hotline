@@ -21,8 +21,12 @@ const app = express();
 app.use(cors());
 // Vercel: run DB init once before handling any request (see ensureInitialized).
 app.use(async (req, res, next) => {
-  // Never block a request on DB init (a slow DB must not hang health/chat).
-  if (process.env.VERCEL) ensureInitialized();
+  // Serverless functions freeze once a response is sent, so DB setup must finish
+  // while a request is still alive. Wait for it, but never longer than 12s so a
+  // slow database cannot hang health checks or chat.
+  if (process.env.VERCEL) {
+    await Promise.race([ensureInitialized(), new Promise(r => setTimeout(r, 12000))]);
+  }
   next();
 });
 app.use(express.json({ limit: '50mb' }));

@@ -4,7 +4,15 @@
     {
       "src": "server.js",
       "use": "@vercel/node",
-      "config": { "includeFiles": ["data/**", "public/**", "index.html", "admin.html"] }
+      "config": {
+        "includeFiles": [
+          "data/**",
+          "public/**",
+          "index.html",
+          "admin.html"
+        ],
+        "maxDuration": 30
+      }
     }
   ],
   "routes": [
