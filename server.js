@@ -138,7 +138,7 @@ function pickRelevant(entries, conversationText, n = 3) {
     return { e, score };
   }).filter(x => x.score >= 3).sort((a, b) => b.score - a.score).slice(0, n);
   const top = scored.length ? scored[0].score : 0;
-  return scored.filter(x => x.score >= top * 0.6).map(x => x.e);
+  return scored.filter(x => x.score >= top * 0.6).map(x => { x.e._score = x.score; return x.e; });
 }
 
 function fmtEntry(e) {
@@ -156,7 +156,7 @@ function fmtEntry(e) {
 }
 
 // Build AI system prompt from the repository, tailored to what the customer has said so far
-async function buildAIPrompt(conversationText = '') {
+async function buildAIPrompt(conversationText = '', meta = null) {
   const base = `You are the intake assistant for Tradies Hotline, an Australian service that connects customers with tradespeople (plumbers, electricians, carpenters, roofers, appliance repairers, pest controllers and more).
 
 Your job:
@@ -168,6 +168,7 @@ Your job:
   try {
     const rows = await loadKnowledge();
     const hits = pickRelevant(rows, conversationText);
+    if (meta) meta.hits = hits.map(h => ({ issue: h.issue_name, trade: h.trade, score: Math.round((h._score || 0) * 10) / 10 }));
     if (hits.length) {
       return `${base}\n\nRELEVANT KNOWLEDGE (background only, never read out as a list or shown to the customer):\n\n${hits.map(fmtEntry).join('\n\n')}`;
     }
@@ -236,6 +237,17 @@ async function initializeDatabase() {
         submission_id INTEGER REFERENCES submissions(id) ON DELETE CASCADE,
         role VARCHAR(20),
         content TEXT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+
+      -- Which knowledge entries each chat turn matched (shows where knowledge is thin)
+      CREATE TABLE IF NOT EXISTS match_log (
+        id SERIAL PRIMARY KEY,
+        submission_id INTEGER,
+        query_text TEXT,
+        matched BOOLEAN,
+        top_score REAL,
+        hits JSONB,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
 
@@ -333,6 +345,14 @@ async function importKnowledgeRepository() {
     const file = join(__dirname, 'data', 'knowledge.json');
     if (!existsSync(file)) return;
     const entries = JSON.parse(readFileSync(file, 'utf-8'));
+    // Be forgiving: any list-type field written as plain text becomes a list.
+    for (const e of entries) {
+      for (const k of ['customer_phrases','trigger_keywords','symptoms','likely_causes','emergency_indicators','quote_info_needed','photo_requests','dispatch_tags']) {
+        if (typeof e[k] === 'string') e[k] = e[k].split(/[;,]/).map(x => x.trim()).filter(Boolean);
+        else if (!Array.isArray(e[k])) e[k] = [];
+      }
+      if (!Array.isArray(e.questions)) e.questions = [];
+    }
     await pool.query(`
       INSERT INTO knowledge_base (issue_name, trade, symptoms, causes, emergency_indicators, suggested_questions, data, reviewed)
       SELECT e->>'issue_name', e->>'trade',
@@ -455,7 +475,16 @@ app.post('/api/v1/chat', async (req, res) => {
     }
 
     // Get AI prompt with knowledge base
-    const systemPrompt = await buildAIPrompt(history.filter(m => m.role === 'user').slice(-6).map(m => m.content).join(' '));
+    const matchMeta = { hits: [] };
+    const queryText = history.filter(m => m.role === 'user').slice(-6).map(m => m.content).join(' ');
+    const systemPrompt = await buildAIPrompt(queryText, matchMeta);
+    // Record what matched (never blocks or breaks the chat)
+    try {
+      await withTimeout(pool.query(
+        'INSERT INTO match_log (submission_id, query_text, matched, top_score, hits) VALUES ($1,$2,$3,$4,$5)',
+        [submissionId || null, queryText.slice(0, 600), matchMeta.hits.length > 0, matchMeta.hits[0]?.score || 0, JSON.stringify(matchMeta.hits)]
+      ), 3000, 'match log');
+    } catch (e) { console.error('match_log:', e.message); }
 
     // Groq speaks the OpenAI format: a flat messages array of {role, content},
     // with the knowledge-base grounding carried as a leading system message
@@ -974,6 +1003,34 @@ app.get('/api/v1/health', (req, res) => {
     groq: process.env.GROQ_API_KEY ? 'configured' : 'not configured',
     spaces: process.env.DO_SPACES_BUCKET ? 'configured' : 'not configured'
   });
+});
+
+// Where the knowledge is thin: chats that matched nothing, or only weakly (admin only)
+app.get('/api/v1/admin/match-gaps', verifyToken, async (req, res) => {
+  try {
+    const days = Math.min(parseInt(req.query.days) || 30, 365);
+    const sum = await pool.query(`SELECT COUNT(*)::int AS total, COUNT(*) FILTER (WHERE matched)::int AS matched,
+      COUNT(*) FILTER (WHERE NOT matched)::int AS unmatched,
+      COUNT(*) FILTER (WHERE matched AND top_score < 8)::int AS weak
+      FROM match_log WHERE created_at > NOW() - ($1 || ' days')::interval`, [days]);
+    const un = await pool.query(`SELECT query_text, top_score, created_at FROM match_log
+      WHERE NOT matched AND created_at > NOW() - ($1 || ' days')::interval ORDER BY created_at DESC LIMIT 100`, [days]);
+    const weak = await pool.query(`SELECT query_text, top_score, hits, created_at FROM match_log
+      WHERE matched AND top_score < 8 AND created_at > NOW() - ($1 || ' days')::interval ORDER BY created_at DESC LIMIT 100`, [days]);
+    const top = await pool.query(`SELECT h->>'issue' AS issue, h->>'trade' AS trade, COUNT(*)::int AS times
+      FROM match_log, jsonb_array_elements(hits) h WHERE created_at > NOW() - ($1 || ' days')::interval
+      GROUP BY 1,2 ORDER BY 3 DESC LIMIT 20`, [days]);
+    res.json({ days, summary: sum.rows[0], unmatched: un.rows, weak: weak.rows, topMatches: top.rows });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// Does this database support smarter (fuzzy / semantic) search? Reports availability only.
+app.get('/api/v1/health/db-extensions', async (req, res) => {
+  try {
+    const r = await pool.query("SELECT name, default_version, installed_version FROM pg_available_extensions WHERE name IN ('vector','pg_trgm','fuzzystrmatch','unaccent') ORDER BY name");
+    const v = await pool.query('SHOW server_version');
+    res.json({ server_version: v.rows[0].server_version, extensions: r.rows });
+  } catch (e) { res.status(503).json({ error: e.message }); }
 });
 
 // Repository size by trade (public, counts only)

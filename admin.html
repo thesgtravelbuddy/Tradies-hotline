@@ -317,6 +317,7 @@
         <button class="tab-btn active" onclick="switchTab('submissions')">📋 Submissions</button>
         <button class="tab-btn" onclick="switchTab('tradsmen')">👷 Tradsmen</button>
         <button class="tab-btn" onclick="switchTab('knowledge')">📚 Knowledge Base</button>
+        <button class="tab-btn" onclick="switchTab('gaps')">🔎 Gaps</button>
         <button class="tab-btn" onclick="switchTab('resources')">🔗 Resources</button>
       </div>
 
@@ -418,6 +419,14 @@
           <div id="kbList" class="table-container">
             Loading...
           </div>
+        </div>
+      </div>
+
+      <!-- Gaps Tab -->
+      <div class="tab-content" id="tab-gaps">
+        <div class="card">
+          <h3>🔎 Where our knowledge is thin (last 30 days)</h3>
+          <div id="gapsList">Loading...</div>
         </div>
       </div>
 
@@ -557,6 +566,7 @@
       if (tabName === 'tradsmen') loadTradsmen();
       if (tabName === 'knowledge') loadKB();
       if (tabName === 'resources') loadResources();
+      if (tabName === 'gaps') loadGaps();
     }
 
     async function loadSubmissions() {
@@ -690,6 +700,25 @@
         console.error('Error adding tradsman:', error);
         alert('Error: ' + error.message);
       }
+    }
+
+    async function loadGaps() {
+      const box = document.getElementById('gapsList');
+      const esc = (t) => String(t == null ? '' : t).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+      try {
+        const r = await fetch('/api/v1/admin/match-gaps?days=30', { headers: { 'Authorization': `Bearer ${token}` } });
+        const d = await r.json();
+        if (!r.ok) throw new Error(d.error || 'failed');
+        const s = d.summary;
+        const rows = (list, extra) => list.length ? list.map(x => `<tr><td>${esc(x.query_text)}</td><td>${extra(x)}</td></tr>`).join('') : '<tr><td colspan="2">Nothing yet</td></tr>';
+        box.innerHTML = `<p><b>${s.total}</b> chat turns. <b>${s.unmatched}</b> matched nothing, <b>${s.weak}</b> matched weakly, <b>${s.matched - s.weak}</b> matched well.</p>
+          <h4>Matched nothing (add knowledge for these)</h4>
+          <div class="table-container"><table><thead><tr><th>What the customer said</th><th>When</th></tr></thead><tbody>${rows(d.unmatched, x => esc(new Date(x.created_at).toLocaleString()))}</tbody></table></div>
+          <h4>Matched weakly (check these)</h4>
+          <div class="table-container"><table><thead><tr><th>What the customer said</th><th>Best match</th></tr></thead><tbody>${rows(d.weak, x => esc((x.hits[0] || {}).issue || ''))}</tbody></table></div>
+          <h4>Most-used entries</h4>
+          <div class="table-container"><table><thead><tr><th>Entry</th><th>Times</th></tr></thead><tbody>${d.topMatches.map(t => `<tr><td>${esc(t.issue)} (${esc(t.trade)})</td><td>${t.times}</td></tr>`).join('') || '<tr><td colspan="2">Nothing yet</td></tr>'}</tbody></table></div>`;
+      } catch (e) { box.textContent = 'Could not load: ' + e.message; }
     }
 
     async function loadKB() {

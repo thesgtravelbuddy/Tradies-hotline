@@ -12127,7 +12127,13 @@
     "priority": false
    }
   ],
-  "quote_info_needed": "Number of rooms, crack width, house type and age, history of repairs, engineer report if any.",
+  "quote_info_needed": [
+   "Number of rooms",
+   "crack width",
+   "house type and age",
+   "history of repairs",
+   "engineer report if any."
+  ],
   "photo_requests": [
    "Cracks close-up",
    "Corners",
@@ -12221,7 +12227,14 @@
     "priority": false
    }
   ],
-  "quote_info_needed": "Area, surface type, age of paint, prior repaints, moisture history, smoke in house.",
+  "quote_info_needed": [
+   "Area",
+   "surface type",
+   "age of paint",
+   "prior repaints",
+   "moisture history",
+   "smoke in house."
+  ],
   "photo_requests": [
    "Close-up",
    "Wide shot",
@@ -12530,7 +12543,14 @@
     "priority": false
    }
   ],
-  "quote_info_needed": "Number and size of tiles, location, tile type, availability of spares, floor type, any water below.",
+  "quote_info_needed": [
+   "Number and size of tiles",
+   "location",
+   "tile type",
+   "availability of spares",
+   "floor type",
+   "any water below."
+  ],
   "photo_requests": [
    "Wide shot of area",
    "Close-up of cracks",
@@ -12623,7 +12643,14 @@
     "priority": false
    }
   ],
-  "quote_info_needed": "Area in square metres, tile size, location, colour, any water leakage, shower or balcony.",
+  "quote_info_needed": [
+   "Area in square metres",
+   "tile size",
+   "location",
+   "colour",
+   "any water leakage",
+   "shower or balcony."
+  ],
   "photo_requests": [
    "Close-up of gaps",
    "Wide shot of area"
@@ -12731,7 +12758,14 @@
     "priority": false
    }
   ],
-  "quote_info_needed": "Shower type and size, floor material (slab or timber), age of last waterproofing, warranty or invoice details, extent of damage in neighbouring rooms, whether plumber has already checked.",
+  "quote_info_needed": [
+   "Shower type and size",
+   "floor material (slab or timber)",
+   "age of last waterproofing",
+   "warranty or invoice details",
+   "extent of damage in neighbouring rooms",
+   "whether plumber has already checked."
+  ],
   "photo_requests": [
    "Whole shower from outside",
    "Close-up of grout and floor corners",
@@ -12953,7 +12987,18 @@
     "priority": false
    }
   ],
-  "quote_info_needed": "Balcony size in square metres, floor construction (slab, timber, over carport), tile type, number of leak points, ceiling damage below, access (height, scaffold), whether it is strata.",
+  "quote_info_needed": [
+   "Balcony size in square metres",
+   "floor construction (slab",
+   "timber",
+   "over carport)",
+   "tile type",
+   "number of leak points",
+   "ceiling damage below",
+   "access (height",
+   "scaffold)",
+   "whether it is strata."
+  ],
   "photo_requests": [
    "Top of balcony wide shot",
    "Cracked grout close-up",
@@ -13055,7 +13100,15 @@
     "priority": false
    }
   ],
-  "quote_info_needed": "Age, area, crack width and length, height difference, original concreter details, ground conditions, trees or drains nearby.",
+  "quote_info_needed": [
+   "Age",
+   "area",
+   "crack width and length",
+   "height difference",
+   "original concreter details",
+   "ground conditions",
+   "trees or drains nearby."
+  ],
   "photo_requests": [
    "Wide shot",
    "Close-up with coin for scale",
@@ -13564,7 +13617,13 @@
     "priority": false
    }
   ],
-  "quote_info_needed": "Wall area, crack width, render type, height, access.",
+  "quote_info_needed": [
+   "Wall area",
+   "crack width",
+   "render type",
+   "height",
+   "access."
+  ],
   "photo_requests": [
    "Cracks",
    "Gutter junction",
@@ -30002,7 +30061,12 @@
     "priority": false
    }
   ],
-  "quote_info_needed": "Gutter length, storey, trees, roof type.",
+  "quote_info_needed": [
+   "Gutter length",
+   "storey",
+   "trees",
+   "roof type."
+  ],
   "photo_requests": [
    "Overflow spot",
    "Gutter"
@@ -30087,7 +30151,13 @@
     "priority": false
    }
   ],
-  "quote_info_needed": "Linear metres, outlet count, storey, tank, gutter type.",
+  "quote_info_needed": [
+   "Linear metres",
+   "outlet count",
+   "storey",
+   "tank",
+   "gutter type."
+  ],
   "photo_requests": [
    "Outlet",
    "Whole gutter run"
@@ -30292,7 +30362,12 @@
     "priority": false
    }
   ],
-  "quote_info_needed": "Downpipe count, location, drain type, access.",
+  "quote_info_needed": [
+   "Downpipe count",
+   "location",
+   "drain type",
+   "access."
+  ],
   "photo_requests": [
    "Base of downpipe",
    "Overflow area"
@@ -31028,7 +31103,12 @@
     "priority": false
    }
   ],
-  "quote_info_needed": "Stain size, room, upstairs bathroom?, roof access.",
+  "quote_info_needed": [
+   "Stain size",
+   "room",
+   "upstairs bathroom?",
+   "roof access."
+  ],
   "photo_requests": [
    "Stain",
    "Wide ceiling"
@@ -31553,7 +31633,12 @@
     "priority": false
    }
   ],
-  "quote_info_needed": "Area, fan, window, roof check.",
+  "quote_info_needed": [
+   "Area",
+   "fan",
+   "window",
+   "roof check."
+  ],
   "photo_requests": [
    "Mould",
    "Fan",
@@ -32508,7 +32593,14 @@
     "priority": false
    }
   ],
-  "quote_info_needed": "Date completed, original tradie details, floor type, number of loose tiles, any water damage below, whether warranty claim is lodged.",
+  "quote_info_needed": [
+   "Date completed",
+   "original tradie details",
+   "floor type",
+   "number of loose tiles",
+   "any water damage below",
+   "whether warranty claim is lodged."
+  ],
   "photo_requests": [
    "Squeaking tiles from above",
    "Drain and floor corners",
@@ -32605,7 +32697,15 @@
     "priority": false
    }
   ],
-  "quote_info_needed": "Which rooms affected, wall type (brick, plasterboard), shower base material, age of bathroom, previous work, whether plumber has tested.",
+  "quote_info_needed": [
+   "Which rooms affected",
+   "wall type (brick",
+   "plasterboard)",
+   "shower base material",
+   "age of bathroom",
+   "previous work",
+   "whether plumber has tested."
+  ],
   "photo_requests": [
    "Damp wall",
    "Shower floor and walls",
@@ -32699,7 +32799,14 @@
     "priority": false
    }
   ],
-  "quote_info_needed": "Roof area, surface type, outlet size, access, ceiling finish, previous waterproofing.",
+  "quote_info_needed": [
+   "Roof area",
+   "surface type",
+   "outlet size",
+   "access",
+   "ceiling finish",
+   "previous waterproofing."
+  ],
   "photo_requests": [
    "Roof surface",
    "Outlet",
@@ -32791,7 +32898,14 @@
     "priority": false
    }
   ],
-  "quote_info_needed": "Area, construction underneath, height clearance, tile type, replacement finish wanted, access.",
+  "quote_info_needed": [
+   "Area",
+   "construction underneath",
+   "height clearance",
+   "tile type",
+   "replacement finish wanted",
+   "access."
+  ],
   "photo_requests": [
    "Whole floor",
    "Cracks",
@@ -32878,7 +32992,12 @@
     "priority": false
    }
   ],
-  "quote_info_needed": "Tile size and type, location, availability of spare, number of tiles.",
+  "quote_info_needed": [
+   "Tile size and type",
+   "location",
+   "availability of spare",
+   "number of tiles."
+  ],
   "photo_requests": [
    "Close-up",
    "Wide shot",
@@ -32957,7 +33076,14 @@
     "priority": false
    }
   ],
-  "quote_info_needed": "Area, tile size and type, floor substrate, removal needed, access, supply of tiles.",
+  "quote_info_needed": [
+   "Area",
+   "tile size and type",
+   "floor substrate",
+   "removal needed",
+   "access",
+   "supply of tiles."
+  ],
   "photo_requests": [
    "Existing area",
    "Plans or tile samples"
@@ -33040,7 +33166,14 @@
     "priority": false
    }
   ],
-  "quote_info_needed": "Pour date, contract or quote, finish type, crack photos, concreter details, any independent assessment.",
+  "quote_info_needed": [
+   "Pour date",
+   "contract or quote",
+   "finish type",
+   "crack photos",
+   "concreter details",
+   "any independent assessment."
+  ],
   "photo_requests": [
    "Cracks with scale",
    "Cut lines",
@@ -33136,7 +33269,13 @@
     "priority": false
    }
   ],
-  "quote_info_needed": "Slab size, direction of fall, drains, access, whether new.",
+  "quote_info_needed": [
+   "Slab size",
+   "direction of fall",
+   "drains",
+   "access",
+   "whether new."
+  ],
   "photo_requests": [
    "Puddle after rain",
    "Wide shot with level"
@@ -33214,7 +33353,15 @@
     "priority": false
    }
   ],
-  "quote_info_needed": "Dimensions, finish, access for trucks, site slope, trees, removal, council approval for crossovers.",
+  "quote_info_needed": [
+   "Dimensions",
+   "finish",
+   "access for trucks",
+   "site slope",
+   "trees",
+   "removal",
+   "council approval for crossovers."
+  ],
   "photo_requests": [
    "Site wide shot",
    "Existing slab",
@@ -33299,7 +33446,12 @@
     "priority": false
    }
   ],
-  "quote_info_needed": "Rooms, ceiling height, furniture to move, previous paint history.",
+  "quote_info_needed": [
+   "Rooms",
+   "ceiling height",
+   "furniture to move",
+   "previous paint history."
+  ],
   "photo_requests": [
    "Cracks close-up",
    "Whole ceiling"
@@ -33381,7 +33533,12 @@
     "priority": false
    }
   ],
-  "quote_info_needed": "Stain size, room, history, access to roof space.",
+  "quote_info_needed": [
+   "Stain size",
+   "room",
+   "history",
+   "access to roof space."
+  ],
   "photo_requests": [
    "Stain close-up",
    "Wide ceiling"
@@ -33458,7 +33615,12 @@
     "priority": false
    }
   ],
-  "quote_info_needed": "Area, finish type, colour sample, damage extent.",
+  "quote_info_needed": [
+   "Area",
+   "finish type",
+   "colour sample",
+   "damage extent."
+  ],
   "photo_requests": [
    "Damaged area",
    "Sample chip",
@@ -33540,7 +33702,12 @@
     "priority": false
    }
   ],
-  "quote_info_needed": "Bathroom size, ceiling condition, fan, window.",
+  "quote_info_needed": [
+   "Bathroom size",
+   "ceiling condition",
+   "fan",
+   "window."
+  ],
   "photo_requests": [
    "Ceiling",
    "Fan"
@@ -33628,7 +33795,12 @@
     "priority": false
    }
   ],
-  "quote_info_needed": "Damage size, fan type, roof check, access to roof space.",
+  "quote_info_needed": [
+   "Damage size",
+   "fan type",
+   "roof check",
+   "access to roof space."
+  ],
   "photo_requests": [
    "Damage",
    "Fan",
@@ -33710,7 +33882,11 @@
     "priority": false
    }
   ],
-  "quote_info_needed": "Extent of soft area, wall type, plumbing nearby.",
+  "quote_info_needed": [
+   "Extent of soft area",
+   "wall type",
+   "plumbing nearby."
+  ],
   "photo_requests": [
    "Soft area",
    "Other side of wall"
@@ -33801,7 +33977,13 @@
     "priority": false
    }
   ],
-  "quote_info_needed": "Roof type, size, material, access, attached or freestanding.",
+  "quote_info_needed": [
+   "Roof type",
+   "size",
+   "material",
+   "access",
+   "attached or freestanding."
+  ],
   "photo_requests": [
    "Leak point",
    "Gable",
@@ -33883,7 +34065,12 @@
     "priority": false
    }
   ],
-  "quote_info_needed": "Roof area, gutter size, downpipes, tile or metal main roof.",
+  "quote_info_needed": [
+   "Roof area",
+   "gutter size",
+   "downpipes",
+   "tile or metal main roof."
+  ],
   "photo_requests": [
    "Join",
    "Gutter",
@@ -34373,8 +34560,18 @@
    "window crack",
    "glass replacement"
   ],
-  "symptoms": "Glass cracked, shattered or partly missing from a window pane",
-  "likely_causes": "Impact (ball, hail, storm debris), thermal stress, settling frame, break-in",
+  "symptoms": [
+   "Glass cracked",
+   "shattered or partly missing from a window pane"
+  ],
+  "likely_causes": [
+   "Impact (ball",
+   "hail",
+   "storm debris)",
+   "thermal stress",
+   "settling frame",
+   "break-in"
+  ],
   "emergency_indicators": [
    "Large open hole into home",
    "Broken glass in children's or pets' area",
@@ -34423,8 +34620,23 @@
     "priority": false
    }
   ],
-  "quote_info_needed": "Pane size, glass type (clear, toughened, laminated, double), frame material, storey, cause, whether insurance claim, make-safe needed",
-  "photo_requests": "Photo of whole window from outside, close-up of break, any labels on glass corner",
+  "quote_info_needed": [
+   "Pane size",
+   "glass type (clear",
+   "toughened",
+   "laminated",
+   "double)",
+   "frame material",
+   "storey",
+   "cause",
+   "whether insurance claim",
+   "make-safe needed"
+  ],
+  "photo_requests": [
+   "Photo of whole window from outside",
+   "close-up of break",
+   "any labels on glass corner"
+  ],
   "dispatch_tags": [
    "glazing",
    "broken-glass",
@@ -34457,8 +34669,15 @@
    "condensation between panes",
    "blown unit"
   ],
-  "symptoms": "Haze, fog, streaks or mineral marks between two panes that do not wipe off",
-  "likely_causes": "Failed edge seal from age, sun exposure or poor installation",
+  "symptoms": [
+   "Haze",
+   "fog",
+   "streaks or mineral marks between two panes that do not wipe off"
+  ],
+  "likely_causes": [
+   "Failed edge seal from age",
+   "sun exposure or poor installation"
+  ],
   "emergency_indicators": [],
   "safety_instruction": "",
   "questions": [
@@ -34503,8 +34722,19 @@
     "priority": false
    }
   ],
-  "quote_info_needed": "Number of units, sizes, frame material and condition, age, warranty, access/storey",
-  "photo_requests": "Photo of fogged window, wide shot of frame, any stamp or label in spacer or corner",
+  "quote_info_needed": [
+   "Number of units",
+   "sizes",
+   "frame material and condition",
+   "age",
+   "warranty",
+   "access/storey"
+  ],
+  "photo_requests": [
+   "Photo of fogged window",
+   "wide shot of frame",
+   "any stamp or label in spacer or corner"
+  ],
   "dispatch_tags": [
    "glazing",
    "double-glazing",
@@ -34538,8 +34768,20 @@
    "sash",
    "rollers"
   ],
-  "symptoms": "Sash or sliding window sticks, drops, rattles, will not stay open or will not latch",
-  "likely_causes": "Worn or broken sash cords, tired rollers, paint build-up, dirt in tracks, swollen or warped frame, loose hardware",
+  "symptoms": [
+   "Sash or sliding window sticks",
+   "drops",
+   "rattles",
+   "will not stay open or will not latch"
+  ],
+  "likely_causes": [
+   "Worn or broken sash cords",
+   "tired rollers",
+   "paint build-up",
+   "dirt in tracks",
+   "swollen or warped frame",
+   "loose hardware"
+  ],
   "emergency_indicators": [
    "Window will not close and home cannot be secured",
    "Window unable to open in a room that needs an escape route (bedroom)"
@@ -34587,8 +34829,19 @@
     "priority": false
    }
   ],
-  "quote_info_needed": "Window type, frame material, which function fails, count, age of house, storey",
-  "photo_requests": "Photo of whole window inside and out, close-up of latch/handle, close-up of bottom track",
+  "quote_info_needed": [
+   "Window type",
+   "frame material",
+   "which function fails",
+   "count",
+   "age of house",
+   "storey"
+  ],
+  "photo_requests": [
+   "Photo of whole window inside and out",
+   "close-up of latch/handle",
+   "close-up of bottom track"
+  ],
   "dispatch_tags": [
    "window-repair",
    "hardware",
@@ -34621,8 +34874,16 @@
    "exploded",
    "frameless"
   ],
-  "symptoms": "Shower glass cracked or broken into small pieces, or panel has shifted or hinge loose",
-  "likely_causes": "Spontaneous breakage in toughened glass (nickel sulphide inclusions), edge impact, binding in frame, thermal stress",
+  "symptoms": [
+   "Shower glass cracked or broken into small pieces",
+   "or panel has shifted or hinge loose"
+  ],
+  "likely_causes": [
+   "Spontaneous breakage in toughened glass (nickel sulphide inclusions)",
+   "edge impact",
+   "binding in frame",
+   "thermal stress"
+  ],
   "emergency_indicators": [
    "Glass shattered with people or pets nearby",
    "Cuts or injury"
@@ -34670,8 +34931,19 @@
     "priority": false
    }
   ],
-  "quote_info_needed": "Screen type, panel sizes, age, warranty/receipt, hardware condition, wall type (tiled)",
-  "photo_requests": "Photo of whole shower screen, close-up of break origin, hinge and bracket details",
+  "quote_info_needed": [
+   "Screen type",
+   "panel sizes",
+   "age",
+   "warranty/receipt",
+   "hardware condition",
+   "wall type (tiled)"
+  ],
+  "photo_requests": [
+   "Photo of whole shower screen",
+   "close-up of break origin",
+   "hinge and bracket details"
+  ],
   "dispatch_tags": [
    "glazing",
    "shower-screen",
@@ -34704,8 +34976,16 @@
    "wardrobe mirror",
    "mirror replacement"
   ],
-  "symptoms": "Cracked, discoloured or detached mirror",
-  "likely_causes": "Impact, moisture creeping behind the silver, failing adhesive, thermal stress",
+  "symptoms": [
+   "Cracked",
+   "discoloured or detached mirror"
+  ],
+  "likely_causes": [
+   "Impact",
+   "moisture creeping behind the silver",
+   "failing adhesive",
+   "thermal stress"
+  ],
   "emergency_indicators": [
    "Large mirror hanging loose or about to fall"
   ],
@@ -34752,8 +35032,18 @@
     "priority": false
    }
   ],
-  "quote_info_needed": "Size, mounting method, location, replace vs repair, access",
-  "photo_requests": "Photo of whole mirror, close-up of damage and edge, photo of fixings",
+  "quote_info_needed": [
+   "Size",
+   "mounting method",
+   "location",
+   "replace vs repair",
+   "access"
+  ],
+  "photo_requests": [
+   "Photo of whole mirror",
+   "close-up of damage and edge",
+   "photo of fixings"
+  ],
   "dispatch_tags": [
    "glazing",
    "mirror"
@@ -34780,8 +35070,18 @@
    "rollers",
    "track"
   ],
-  "symptoms": "Glass cracked or missing in sliding door, or door heavy, jumps track or will not lock",
-  "likely_causes": "Worn rollers, dirty or bent tracks, impact, thermal stress, settling",
+  "symptoms": [
+   "Glass cracked or missing in sliding door",
+   "or door heavy",
+   "jumps track or will not lock"
+  ],
+  "likely_causes": [
+   "Worn rollers",
+   "dirty or bent tracks",
+   "impact",
+   "thermal stress",
+   "settling"
+  ],
   "emergency_indicators": [
    "Door glass broken with opening to outside",
    "Door cannot be locked"
@@ -34829,8 +35129,18 @@
     "priority": false
    }
   ],
-  "quote_info_needed": "Door size, frame material, glass type, which part failed, security status",
-  "photo_requests": "Photo of whole door inside and out, close-up of bottom rollers/track, break close-up",
+  "quote_info_needed": [
+   "Door size",
+   "frame material",
+   "glass type",
+   "which part failed",
+   "security status"
+  ],
+  "photo_requests": [
+   "Photo of whole door inside and out",
+   "close-up of bottom rollers/track",
+   "break close-up"
+  ],
   "dispatch_tags": [
    "glazing",
    "sliding-door",
@@ -34863,8 +35173,18 @@
    "window leak",
    "draught window"
   ],
-  "symptoms": "Rattling, perished rubber, drafts or rain entry around window",
-  "likely_causes": "Worn weather seals, dried glazing bead, loose beads, frame movement, failed sealant",
+  "symptoms": [
+   "Rattling",
+   "perished rubber",
+   "drafts or rain entry around window"
+  ],
+  "likely_causes": [
+   "Worn weather seals",
+   "dried glazing bead",
+   "loose beads",
+   "frame movement",
+   "failed sealant"
+  ],
   "emergency_indicators": [
    "Water pouring in during storm"
   ],
@@ -34911,8 +35231,18 @@
     "priority": false
    }
   ],
-  "quote_info_needed": "Window type, count, frame material, leak evidence, age",
-  "photo_requests": "Photo of window outside and inside, close-up of seals, any water stains",
+  "quote_info_needed": [
+   "Window type",
+   "count",
+   "frame material",
+   "leak evidence",
+   "age"
+  ],
+  "photo_requests": [
+   "Photo of window outside and inside",
+   "close-up of seals",
+   "any water stains"
+  ],
   "dispatch_tags": [
    "glazing",
    "window-seal",
@@ -34944,8 +35274,16 @@
    "floorboards",
    "noisy floor"
   ],
-  "symptoms": "Noise underfoot at certain spots, sometimes with slight movement",
-  "likely_causes": "Timber shrinkage opening gaps at joists, loose boards, too few fixings, subfloor movement",
+  "symptoms": [
+   "Noise underfoot at certain spots",
+   "sometimes with slight movement"
+  ],
+  "likely_causes": [
+   "Timber shrinkage opening gaps at joists",
+   "loose boards",
+   "too few fixings",
+   "subfloor movement"
+  ],
   "emergency_indicators": [],
   "safety_instruction": "",
   "questions": [
@@ -34990,8 +35328,18 @@
     "priority": false
    }
   ],
-  "quote_info_needed": "Room list, area m2, floor type, access underneath, covering on top, age",
-  "photo_requests": "Photo of the floor and room, photo of subfloor access if available",
+  "quote_info_needed": [
+   "Room list",
+   "area m2",
+   "floor type",
+   "access underneath",
+   "covering on top",
+   "age"
+  ],
+  "photo_requests": [
+   "Photo of the floor and room",
+   "photo of subfloor access if available"
+  ],
   "dispatch_tags": [
    "flooring",
    "timber",
@@ -35028,8 +35376,18 @@
    "timber floor gaps",
    "peaking"
   ],
-  "symptoms": "Board edges raised, floor waves, gaps between boards or boards pushing up",
-  "likely_causes": "Moisture imbalance, damp subfloor, poor ventilation, leaks, lack of expansion gaps",
+  "symptoms": [
+   "Board edges raised",
+   "floor waves",
+   "gaps between boards or boards pushing up"
+  ],
+  "likely_causes": [
+   "Moisture imbalance",
+   "damp subfloor",
+   "poor ventilation",
+   "leaks",
+   "lack of expansion gaps"
+  ],
   "emergency_indicators": [
    "Floor lifting after flood or burst pipe",
    "Strong musty smell or visible mould"
@@ -35077,8 +35435,19 @@
     "priority": false
    }
   ],
-  "quote_info_needed": "Type of boards, area, rooms, moisture source, subfloor access, age",
-  "photo_requests": "Photo of raised boards from low angle, wide room photo, subfloor photo if accessible",
+  "quote_info_needed": [
+   "Type of boards",
+   "area",
+   "rooms",
+   "moisture source",
+   "subfloor access",
+   "age"
+  ],
+  "photo_requests": [
+   "Photo of raised boards from low angle",
+   "wide room photo",
+   "subfloor photo if accessible"
+  ],
   "dispatch_tags": [
    "flooring",
    "timber",
@@ -35119,8 +35488,18 @@
    "scratched floor",
    "varnish"
   ],
-  "symptoms": "Worn, scratched, dull or peeling timber floor finish",
-  "likely_causes": "Wear and tear, furniture, sun, cleaning products, poor previous coating",
+  "symptoms": [
+   "Worn",
+   "scratched",
+   "dull or peeling timber floor finish"
+  ],
+  "likely_causes": [
+   "Wear and tear",
+   "furniture",
+   "sun",
+   "cleaning products",
+   "poor previous coating"
+  ],
   "emergency_indicators": [],
   "safety_instruction": "",
   "questions": [
@@ -35165,8 +35544,20 @@
     "priority": false
    }
   ],
-  "quote_info_needed": "Area, floor species if known, condition, finish type, repairs, furniture moving, age of house",
-  "photo_requests": "Photo of whole room, close-up of worn area, any gaps or damage",
+  "quote_info_needed": [
+   "Area",
+   "floor species if known",
+   "condition",
+   "finish type",
+   "repairs",
+   "furniture moving",
+   "age of house"
+  ],
+  "photo_requests": [
+   "Photo of whole room",
+   "close-up of worn area",
+   "any gaps or damage"
+  ],
   "dispatch_tags": [
    "flooring",
    "sanding",
@@ -35203,8 +35594,18 @@
    "soft floor",
    "rotten floor"
   ],
-  "symptoms": "Swollen, soft, stained or discoloured flooring after water",
-  "likely_causes": "Burst pipe, appliance leak, roof leak, flooding, subfloor moisture",
+  "symptoms": [
+   "Swollen",
+   "soft",
+   "stained or discoloured flooring after water"
+  ],
+  "likely_causes": [
+   "Burst pipe",
+   "appliance leak",
+   "roof leak",
+   "flooding",
+   "subfloor moisture"
+  ],
   "emergency_indicators": [
    "Active water leak",
    "Floor sagging or giving way",
@@ -35253,8 +35654,19 @@
     "priority": false
    }
   ],
-  "quote_info_needed": "Floor type, affected area, water source fixed or not, insurance details, access, age",
-  "photo_requests": "Photo of damaged area and wider room, close-up of edges, any visible leak source",
+  "quote_info_needed": [
+   "Floor type",
+   "affected area",
+   "water source fixed or not",
+   "insurance details",
+   "access",
+   "age"
+  ],
+  "photo_requests": [
+   "Photo of damaged area and wider room",
+   "close-up of edges",
+   "any visible leak source"
+  ],
   "dispatch_tags": [
    "flooring",
    "water-damage",
@@ -35295,8 +35707,19 @@
    "buckling",
    "lifting"
   ],
-  "symptoms": "Planks lifting, peaking, gapping, or bubbles in floor",
-  "likely_causes": "Moisture, lack of expansion gaps, poor subfloor, wear, damage from furniture",
+  "symptoms": [
+   "Planks lifting",
+   "peaking",
+   "gapping",
+   "or bubbles in floor"
+  ],
+  "likely_causes": [
+   "Moisture",
+   "lack of expansion gaps",
+   "poor subfloor",
+   "wear",
+   "damage from furniture"
+  ],
   "emergency_indicators": [
    "Water leak underneath"
   ],
@@ -35343,8 +35766,19 @@
     "priority": false
    }
   ],
-  "quote_info_needed": "Floor type, area, damaged count, spare boards, brand if known, subfloor type",
-  "photo_requests": "Photo of damage, wider room photo, photo of floor edge at skirting",
+  "quote_info_needed": [
+   "Floor type",
+   "area",
+   "damaged count",
+   "spare boards",
+   "brand if known",
+   "subfloor type"
+  ],
+  "photo_requests": [
+   "Photo of damage",
+   "wider room photo",
+   "photo of floor edge at skirting"
+  ],
   "dispatch_tags": [
    "flooring",
    "laminate",
@@ -35381,8 +35815,17 @@
    "tile lifting",
    "peeling"
   ],
-  "symptoms": "Edges curling, tiles loose, tears or cracked lino",
-  "likely_causes": "Age, moisture, failed adhesive, subfloor movement",
+  "symptoms": [
+   "Edges curling",
+   "tiles loose",
+   "tears or cracked lino"
+  ],
+  "likely_causes": [
+   "Age",
+   "moisture",
+   "failed adhesive",
+   "subfloor movement"
+  ],
   "emergency_indicators": [
    "Tile edges breaking up and being disturbed in an old house"
   ],
@@ -35429,8 +35872,19 @@
     "priority": false
    }
   ],
-  "quote_info_needed": "House age, floor type, size of area, number of layers, subfloor, trip hazards",
-  "photo_requests": "Photo of damage, wider photo of room, photo of edge near door",
+  "quote_info_needed": [
+   "House age",
+   "floor type",
+   "size of area",
+   "number of layers",
+   "subfloor",
+   "trip hazards"
+  ],
+  "photo_requests": [
+   "Photo of damage",
+   "wider photo of room",
+   "photo of edge near door"
+  ],
   "dispatch_tags": [
    "flooring",
    "vinyl",
@@ -35466,8 +35920,18 @@
    "carpet buckling",
    "loose carpet"
   ],
-  "symptoms": "Waves or lumps in carpet, loose edges, seams pulling apart",
-  "likely_causes": "Poor stretching at install, humidity, water damage, worn underlay, subfloor issues",
+  "symptoms": [
+   "Waves or lumps in carpet",
+   "loose edges",
+   "seams pulling apart"
+  ],
+  "likely_causes": [
+   "Poor stretching at install",
+   "humidity",
+   "water damage",
+   "worn underlay",
+   "subfloor issues"
+  ],
   "emergency_indicators": [
    "Trip hazard to elderly person"
   ],
@@ -35514,8 +35978,19 @@
     "priority": false
    }
   ],
-  "quote_info_needed": "Rooms, area m2, carpet age, water history, hazards, spare carpet",
-  "photo_requests": "Photo of ripples from low angle, wide room photo, edge at doorway",
+  "quote_info_needed": [
+   "Rooms",
+   "area m2",
+   "carpet age",
+   "water history",
+   "hazards",
+   "spare carpet"
+  ],
+  "photo_requests": [
+   "Photo of ripples from low angle",
+   "wide room photo",
+   "edge at doorway"
+  ],
   "dispatch_tags": [
    "flooring",
    "carpet",
@@ -35547,8 +36022,15 @@
    "burn",
    "carpet hole"
   ],
-  "symptoms": "Localised damage to carpet fibres or backing",
-  "likely_causes": "Cigarette or iron burns, pets, furniture, spills",
+  "symptoms": [
+   "Localised damage to carpet fibres or backing"
+  ],
+  "likely_causes": [
+   "Cigarette or iron burns",
+   "pets",
+   "furniture",
+   "spills"
+  ],
   "emergency_indicators": [],
   "safety_instruction": "",
   "questions": [
@@ -35593,8 +36075,17 @@
     "priority": false
    }
   ],
-  "quote_info_needed": "Damage type, size, spare carpet, carpet type",
-  "photo_requests": "Photo of damage, ruler for scale, wide room photo",
+  "quote_info_needed": [
+   "Damage type",
+   "size",
+   "spare carpet",
+   "carpet type"
+  ],
+  "photo_requests": [
+   "Photo of damage",
+   "ruler for scale",
+   "wide room photo"
+  ],
   "dispatch_tags": [
    "flooring",
    "carpet",
@@ -35621,8 +36112,18 @@
    "drummy",
    "grout"
   ],
-  "symptoms": "Tiles that move, sound hollow, crack or rise",
-  "likely_causes": "Movement in slab, adhesive failure, water under tiles, impact, poor install",
+  "symptoms": [
+   "Tiles that move",
+   "sound hollow",
+   "crack or rise"
+  ],
+  "likely_causes": [
+   "Movement in slab",
+   "adhesive failure",
+   "water under tiles",
+   "impact",
+   "poor install"
+  ],
   "emergency_indicators": [
    "Water leak under tiles",
    "Large area failing"
@@ -35670,8 +36171,19 @@
     "priority": false
    }
   ],
-  "quote_info_needed": "Count of tiles, area, wet area yes/no, spare tiles, tile size, slab type",
-  "photo_requests": "Photo of lifted tiles, wide shot, close-up of any cracks",
+  "quote_info_needed": [
+   "Count of tiles",
+   "area",
+   "wet area yes/no",
+   "spare tiles",
+   "tile size",
+   "slab type"
+  ],
+  "photo_requests": [
+   "Photo of lifted tiles",
+   "wide shot",
+   "close-up of any cracks"
+  ],
   "dispatch_tags": [
    "flooring",
    "tiles",
@@ -35703,8 +36215,16 @@
    "musty",
    "soaked"
   ],
-  "symptoms": "Wet carpet or floor, musty smell, visible damp patches",
-  "likely_causes": "Storm entry, leaking pipe or appliance, plumbing overflow",
+  "symptoms": [
+   "Wet carpet or floor",
+   "musty smell",
+   "visible damp patches"
+  ],
+  "likely_causes": [
+   "Storm entry",
+   "leaking pipe or appliance",
+   "plumbing overflow"
+  ],
   "emergency_indicators": [
    "Standing water",
    "Water near power points",
@@ -35753,8 +36273,18 @@
     "priority": false
    }
   ],
-  "quote_info_needed": "Cause, area, flooring, time elapsed, insurance info",
-  "photo_requests": "Photo of wet area, source of water, flooring edge",
+  "quote_info_needed": [
+   "Cause",
+   "area",
+   "flooring",
+   "time elapsed",
+   "insurance info"
+  ],
+  "photo_requests": [
+   "Photo of wet area",
+   "source of water",
+   "flooring edge"
+  ],
   "dispatch_tags": [
    "flooring",
    "water-damage",
@@ -35791,8 +36321,17 @@
    "ceiling insulation",
    "energy efficiency"
   ],
-  "symptoms": "Rooms hard to heat or cool, large temperature swings",
-  "likely_causes": "Missing, thin, compressed or gappy insulation; poor sealing; heat gain via roof or windows",
+  "symptoms": [
+   "Rooms hard to heat or cool",
+   "large temperature swings"
+  ],
+  "likely_causes": [
+   "Missing",
+   "thin",
+   "compressed or gappy insulation",
+   "poor sealing",
+   "heat gain via roof or windows"
+  ],
   "emergency_indicators": [],
   "safety_instruction": "",
   "questions": [
@@ -35837,8 +36376,19 @@
     "priority": false
    }
   ],
-  "quote_info_needed": "Roof type, ceiling area, hatch access, existing insulation, downlights, wiring condition, age",
-  "photo_requests": "Photo of roof space if safely visible from the hatch, photo of ceiling and hatch",
+  "quote_info_needed": [
+   "Roof type",
+   "ceiling area",
+   "hatch access",
+   "existing insulation",
+   "downlights",
+   "wiring condition",
+   "age"
+  ],
+  "photo_requests": [
+   "Photo of roof space if safely visible from the hatch",
+   "photo of ceiling and hatch"
+  ],
   "dispatch_tags": [
    "insulation",
    "ceiling",
@@ -35870,8 +36420,18 @@
    "pests in roof",
    "sagging batts"
   ],
-  "symptoms": "Sagging, wet, flattened or contaminated insulation",
-  "likely_causes": "Roof leak, pests, age, foot traffic, condensation",
+  "symptoms": [
+   "Sagging",
+   "wet",
+   "flattened or contaminated insulation"
+  ],
+  "likely_causes": [
+   "Roof leak",
+   "pests",
+   "age",
+   "foot traffic",
+   "condensation"
+  ],
   "emergency_indicators": [
    "Loose insulation in an old home that may contain asbestos",
    "Water dripping through ceiling"
@@ -35919,8 +36479,19 @@
     "priority": false
    }
   ],
-  "quote_info_needed": "Roof area, insulation type, damage cause, age, wiring, pests",
-  "photo_requests": "Photo from hatch only, ceiling stains, droppings if seen from a safe distance",
+  "quote_info_needed": [
+   "Roof area",
+   "insulation type",
+   "damage cause",
+   "age",
+   "wiring",
+   "pests"
+  ],
+  "photo_requests": [
+   "Photo from hatch only",
+   "ceiling stains",
+   "droppings if seen from a safe distance"
+  ],
   "dispatch_tags": [
    "insulation",
    "roof-space",
@@ -35957,8 +36528,14 @@
    "hot lights",
    "burning smell"
   ],
-  "symptoms": "Heat near recessed lights, insulation close to fittings",
-  "likely_causes": "Old halogen downlights not rated for covering, insulation placed too close",
+  "symptoms": [
+   "Heat near recessed lights",
+   "insulation close to fittings"
+  ],
+  "likely_causes": [
+   "Old halogen downlights not rated for covering",
+   "insulation placed too close"
+  ],
   "emergency_indicators": [
    "Burning smell from ceiling",
    "Scorched ceiling or fitting"
@@ -36006,8 +36583,18 @@
     "priority": false
    }
   ],
-  "quote_info_needed": "Light type, count, ceiling access, insulation, electrician needed",
-  "photo_requests": "Photo of lights, ceiling marks, hatch view if safe",
+  "quote_info_needed": [
+   "Light type",
+   "count",
+   "ceiling access",
+   "insulation",
+   "electrician needed"
+  ],
+  "photo_requests": [
+   "Photo of lights",
+   "ceiling marks",
+   "hatch view if safe"
+  ],
   "dispatch_tags": [
    "insulation",
    "downlights",
@@ -36040,8 +36627,19 @@
    "whistling",
    "air leak"
   ],
-  "symptoms": "Cold air movement, whistling, noticeable temperature differences",
-  "likely_causes": "Worn seals, gaps in doors, floorboards, vents, old windows, unsealed penetrations",
+  "symptoms": [
+   "Cold air movement",
+   "whistling",
+   "noticeable temperature differences"
+  ],
+  "likely_causes": [
+   "Worn seals",
+   "gaps in doors",
+   "floorboards",
+   "vents",
+   "old windows",
+   "unsealed penetrations"
+  ],
   "emergency_indicators": [],
   "safety_instruction": "",
   "questions": [
@@ -36086,8 +36684,17 @@
     "priority": false
    }
   ],
-  "quote_info_needed": "Locations, door/window types, floor type, age",
-  "photo_requests": "Photo of gaps, door base, window edges",
+  "quote_info_needed": [
+   "Locations",
+   "door/window types",
+   "floor type",
+   "age"
+  ],
+  "photo_requests": [
+   "Photo of gaps",
+   "door base",
+   "window edges"
+  ],
   "dispatch_tags": [
    "draught",
    "sealing",
@@ -36123,8 +36730,13 @@
    "tin roof",
    "expansion"
   ],
-  "symptoms": "Cracking, popping or banging noises as the roof heats or cools",
-  "likely_causes": "Thermal expansion of steel sheeting rubbing against fixings",
+  "symptoms": [
+   "Cracking",
+   "popping or banging noises as the roof heats or cools"
+  ],
+  "likely_causes": [
+   "Thermal expansion of steel sheeting rubbing against fixings"
+  ],
   "emergency_indicators": [],
   "safety_instruction": "",
   "questions": [
@@ -36169,8 +36781,17 @@
     "priority": false
    }
   ],
-  "quote_info_needed": "Roof type, age, noise timing, insulation, leaks",
-  "photo_requests": "Photo of roof from ground, ceiling area where heard",
+  "quote_info_needed": [
+   "Roof type",
+   "age",
+   "noise timing",
+   "insulation",
+   "leaks"
+  ],
+  "photo_requests": [
+   "Photo of roof from ground",
+   "ceiling area where heard"
+  ],
   "dispatch_tags": [
    "roof-noise",
    "insulation"
@@ -36201,8 +36822,13 @@
    "wall insulation",
    "batts"
   ],
-  "symptoms": "Customer wants new or additional insulation",
-  "likely_causes": "Heat loss/gain, reducing running costs",
+  "symptoms": [
+   "Customer wants new or additional insulation"
+  ],
+  "likely_causes": [
+   "Heat loss/gain",
+   "reducing running costs"
+  ],
   "emergency_indicators": [],
   "safety_instruction": "",
   "questions": [
@@ -36247,8 +36873,16 @@
     "priority": false
    }
   ],
-  "quote_info_needed": "Areas, access, existing insulation, building age",
-  "photo_requests": "Photo of roof hatch, underfloor access",
+  "quote_info_needed": [
+   "Areas",
+   "access",
+   "existing insulation",
+   "building age"
+  ],
+  "photo_requests": [
+   "Photo of roof hatch",
+   "underfloor access"
+  ],
   "dispatch_tags": [
    "insulation",
    "quote"
@@ -36284,8 +36918,18 @@
    "backdraft",
    "wood heater"
   ],
-  "symptoms": "Smoke spilling into the room or strong smoke smell",
-  "likely_causes": "Blocked flue, nest, creosote, wet wood, closed air control, downdraft, damaged flue",
+  "symptoms": [
+   "Smoke spilling into the room or strong smoke smell"
+  ],
+  "likely_causes": [
+   "Blocked flue",
+   "nest",
+   "creosote",
+   "wet wood",
+   "closed air control",
+   "downdraft",
+   "damaged flue"
+  ],
   "emergency_indicators": [
    "Smoke filling room",
    "Headache, dizziness or nausea",
@@ -36334,8 +36978,20 @@
     "priority": false
    }
   ],
-  "quote_info_needed": "Appliance type, brand, flue type, last service, symptoms, roof pitch, access",
-  "photo_requests": "Photo of heater/fireplace, flue pipe through ceiling, chimney top from the ground",
+  "quote_info_needed": [
+   "Appliance type",
+   "brand",
+   "flue type",
+   "last service",
+   "symptoms",
+   "roof pitch",
+   "access"
+  ],
+  "photo_requests": [
+   "Photo of heater/fireplace",
+   "flue pipe through ceiling",
+   "chimney top from the ground"
+  ],
   "dispatch_tags": [
    "chimney",
    "wood-heater",
@@ -36373,8 +37029,15 @@
    "creosote",
    "flue clean"
   ],
-  "symptoms": "Soot fall, odours, sluggish fire, black deposits",
-  "likely_causes": "Creosote and soot build-up over time",
+  "symptoms": [
+   "Soot fall",
+   "odours",
+   "sluggish fire",
+   "black deposits"
+  ],
+  "likely_causes": [
+   "Creosote and soot build-up over time"
+  ],
   "emergency_indicators": [],
   "safety_instruction": "Do not use the fireplace if you suspect a blockage or heavy buildup. Have the flue checked first.",
   "questions": [
@@ -36419,8 +37082,17 @@
     "priority": false
    }
   ],
-  "quote_info_needed": "Appliance type, flue type, height, last service, access",
-  "photo_requests": "Photo of fireplace/heater, chimney from outside",
+  "quote_info_needed": [
+   "Appliance type",
+   "flue type",
+   "height",
+   "last service",
+   "access"
+  ],
+  "photo_requests": [
+   "Photo of fireplace/heater",
+   "chimney from outside"
+  ],
   "dispatch_tags": [
    "chimney",
    "sweep",
@@ -36457,8 +37129,19 @@
    "flue pipe",
    "chimney cap"
   ],
-  "symptoms": "Visible cracks, loose bricks, missing cap, rusted flue",
-  "likely_causes": "Weathering, mortar decay, storm damage, movement, rust",
+  "symptoms": [
+   "Visible cracks",
+   "loose bricks",
+   "missing cap",
+   "rusted flue"
+  ],
+  "likely_causes": [
+   "Weathering",
+   "mortar decay",
+   "storm damage",
+   "movement",
+   "rust"
+  ],
   "emergency_indicators": [
    "Bricks falling or leaning chimney",
    "Smoke or fumes inside from cracks"
@@ -36506,8 +37189,18 @@
     "priority": false
    }
   ],
-  "quote_info_needed": "Chimney type, height above roof, damage, access, storm history",
-  "photo_requests": "Photo of chimney from ground, close-up of damage if safe from ground, roof line",
+  "quote_info_needed": [
+   "Chimney type",
+   "height above roof",
+   "damage",
+   "access",
+   "storm history"
+  ],
+  "photo_requests": [
+   "Photo of chimney from ground",
+   "close-up of damage if safe from ground",
+   "roof line"
+  ],
   "dispatch_tags": [
    "chimney",
    "masonry",
@@ -36543,8 +37236,17 @@
    "flashing",
    "water stain"
   ],
-  "symptoms": "Water in firebox, stains around chimney breast, musty smell",
-  "likely_causes": "Missing cap, cracked crown, decayed mortar, flashing failure",
+  "symptoms": [
+   "Water in firebox",
+   "stains around chimney breast",
+   "musty smell"
+  ],
+  "likely_causes": [
+   "Missing cap",
+   "cracked crown",
+   "decayed mortar",
+   "flashing failure"
+  ],
   "emergency_indicators": [
    "Ceiling bulging or dripping heavily"
   ],
@@ -36591,8 +37293,17 @@
     "priority": false
    }
   ],
-  "quote_info_needed": "Location of stains, chimney type, roof type, access, history",
-  "photo_requests": "Photo of stain and fireplace, chimney from outside",
+  "quote_info_needed": [
+   "Location of stains",
+   "chimney type",
+   "roof type",
+   "access",
+   "history"
+  ],
+  "photo_requests": [
+   "Photo of stain and fireplace",
+   "chimney from outside"
+  ],
   "dispatch_tags": [
    "chimney",
    "leak",
@@ -36624,8 +37335,16 @@
    "nest",
    "animal in chimney"
   ],
-  "symptoms": "Scratching, chirping, debris, odours, blocked draw",
-  "likely_causes": "Animals entering through uncapped flue",
+  "symptoms": [
+   "Scratching",
+   "chirping",
+   "debris",
+   "odours",
+   "blocked draw"
+  ],
+  "likely_causes": [
+   "Animals entering through uncapped flue"
+  ],
   "emergency_indicators": [
    "Animal trapped and distressed",
    "Fireplace in use with nest above"
@@ -36673,8 +37392,17 @@
     "priority": false
    }
   ],
-  "quote_info_needed": "Animal type, cap status, chimney height, access",
-  "photo_requests": "Photo of fireplace, debris, chimney top",
+  "quote_info_needed": [
+   "Animal type",
+   "cap status",
+   "chimney height",
+   "access"
+  ],
+  "photo_requests": [
+   "Photo of fireplace",
+   "debris",
+   "chimney top"
+  ],
   "dispatch_tags": [
    "chimney",
    "wildlife",
@@ -36706,8 +37434,18 @@
    "won't light",
    "door seal"
   ],
-  "symptoms": "Poor burn, blackened glass, smoke when loading",
-  "likely_causes": "Wet wood, blocked air inlet, worn seals, flue issues, creosote",
+  "symptoms": [
+   "Poor burn",
+   "blackened glass",
+   "smoke when loading"
+  ],
+  "likely_causes": [
+   "Wet wood",
+   "blocked air inlet",
+   "worn seals",
+   "flue issues",
+   "creosote"
+  ],
   "emergency_indicators": [
    "Smoke in room",
    "CO alarm"
@@ -36755,8 +37493,19 @@
     "priority": false
    }
   ],
-  "quote_info_needed": "Heater brand/model, age, flue, service history, symptoms",
-  "photo_requests": "Photo of heater, glass, door seal, compliance plate",
+  "quote_info_needed": [
+   "Heater brand/model",
+   "age",
+   "flue",
+   "service history",
+   "symptoms"
+  ],
+  "photo_requests": [
+   "Photo of heater",
+   "glass",
+   "door seal",
+   "compliance plate"
+  ],
   "dispatch_tags": [
    "wood-heater",
    "service"
@@ -36791,8 +37540,14 @@
    "fireplace insert",
    "remove fireplace"
   ],
-  "symptoms": "Customer wants new installation or removal",
-  "likely_causes": "Upgrade, damage, compliance",
+  "symptoms": [
+   "Customer wants new installation or removal"
+  ],
+  "likely_causes": [
+   "Upgrade",
+   "damage",
+   "compliance"
+  ],
   "emergency_indicators": [],
   "safety_instruction": "",
   "questions": [
@@ -36837,8 +37592,18 @@
     "priority": false
    }
   ],
-  "quote_info_needed": "Room, flue, roof, heater type, ceiling height",
-  "photo_requests": "Photo of room, existing fireplace, roof",
+  "quote_info_needed": [
+   "Room",
+   "flue",
+   "roof",
+   "heater type",
+   "ceiling height"
+  ],
+  "photo_requests": [
+   "Photo of room",
+   "existing fireplace",
+   "roof"
+  ],
   "dispatch_tags": [
    "wood-heater",
    "install"
@@ -36869,8 +37634,16 @@
    "spring",
    "mechanism"
   ],
-  "symptoms": "Blind will not wind, chain broken, falls or sticks",
-  "likely_causes": "Worn chain drive, broken clutch, failed spring",
+  "symptoms": [
+   "Blind will not wind",
+   "chain broken",
+   "falls or sticks"
+  ],
+  "likely_causes": [
+   "Worn chain drive",
+   "broken clutch",
+   "failed spring"
+  ],
   "emergency_indicators": [],
   "safety_instruction": "",
   "questions": [
@@ -36915,8 +37688,17 @@
     "priority": false
    }
   ],
-  "quote_info_needed": "Blind type, size, fault, count, brand",
-  "photo_requests": "Photo of blind, chain and brackets",
+  "quote_info_needed": [
+   "Blind type",
+   "size",
+   "fault",
+   "count",
+   "brand"
+  ],
+  "photo_requests": [
+   "Photo of blind",
+   "chain and brackets"
+  ],
   "dispatch_tags": [
    "blinds",
    "roller"
@@ -36947,8 +37729,16 @@
    "cord",
    "tilter"
   ],
-  "symptoms": "Cord snapped, slats stuck, blind crooked",
-  "likely_causes": "Frayed cords, failing cord lock, broken tilter",
+  "symptoms": [
+   "Cord snapped",
+   "slats stuck",
+   "blind crooked"
+  ],
+  "likely_causes": [
+   "Frayed cords",
+   "failing cord lock",
+   "broken tilter"
+  ],
   "emergency_indicators": [
    "Loose or looped cord within reach of a child"
   ],
@@ -36995,8 +37785,18 @@
     "priority": false
    }
   ],
-  "quote_info_needed": "Blind type, size, fault, count, child safety",
-  "photo_requests": "Photo of blind, cord lock, head rail",
+  "quote_info_needed": [
+   "Blind type",
+   "size",
+   "fault",
+   "count",
+   "child safety"
+  ],
+  "photo_requests": [
+   "Photo of blind",
+   "cord lock",
+   "head rail"
+  ],
   "dispatch_tags": [
    "blinds",
    "cord-safety"
@@ -37027,8 +37827,16 @@
    "rail",
    "fallen curtain"
   ],
-  "symptoms": "Rail pulled loose or sagging; curtains jam",
-  "likely_causes": "Poor fixing, weight, plaster failure, worn gliders",
+  "symptoms": [
+   "Rail pulled loose or sagging",
+   "curtains jam"
+  ],
+  "likely_causes": [
+   "Poor fixing",
+   "weight",
+   "plaster failure",
+   "worn gliders"
+  ],
   "emergency_indicators": [],
   "safety_instruction": "",
   "questions": [
@@ -37073,8 +37881,17 @@
     "priority": false
    }
   ],
-  "quote_info_needed": "Rail type, width, wall damage, count",
-  "photo_requests": "Photo of rail, wall damage, whole window",
+  "quote_info_needed": [
+   "Rail type",
+   "width",
+   "wall damage",
+   "count"
+  ],
+  "photo_requests": [
+   "Photo of rail",
+   "wall damage",
+   "whole window"
+  ],
   "dispatch_tags": [
    "curtains",
    "track"
@@ -37100,8 +37917,17 @@
    "fabric torn",
    "awning motor"
   ],
-  "symptoms": "Awning stuck, bent, ripped or flapping",
-  "likely_causes": "Wind damage, wear, motor or remote fault, broken arm",
+  "symptoms": [
+   "Awning stuck",
+   "bent",
+   "ripped or flapping"
+  ],
+  "likely_causes": [
+   "Wind damage",
+   "wear",
+   "motor or remote fault",
+   "broken arm"
+  ],
   "emergency_indicators": [
    "Awning partly collapsed or detached"
   ],
@@ -37148,8 +37974,19 @@
     "priority": false
    }
   ],
-  "quote_info_needed": "Type, size, brand, fault, height, storm",
-  "photo_requests": "Photo of awning from distance, arms, motor box",
+  "quote_info_needed": [
+   "Type",
+   "size",
+   "brand",
+   "fault",
+   "height",
+   "storm"
+  ],
+  "photo_requests": [
+   "Photo of awning from distance",
+   "arms",
+   "motor box"
+  ],
   "dispatch_tags": [
    "awning",
    "outdoor",
@@ -37176,8 +38013,14 @@
    "motor",
    "shutter"
   ],
-  "symptoms": "Blind does not respond or moves erratically",
-  "likely_causes": "Battery or power supply fault, motor failure, remote sync",
+  "symptoms": [
+   "Blind does not respond or moves erratically"
+  ],
+  "likely_causes": [
+   "Battery or power supply fault",
+   "motor failure",
+   "remote sync"
+  ],
   "emergency_indicators": [
    "Burning smell or sparks from motor"
   ],
@@ -37224,8 +38067,17 @@
     "priority": false
    }
   ],
-  "quote_info_needed": "Brand, power type, number, fault",
-  "photo_requests": "Photo of blind, motor end, remote",
+  "quote_info_needed": [
+   "Brand",
+   "power type",
+   "number",
+   "fault"
+  ],
+  "photo_requests": [
+   "Photo of blind",
+   "motor end",
+   "remote"
+  ],
   "dispatch_tags": [
    "blinds",
    "motor",
@@ -37252,8 +38104,15 @@
    "measure",
    "fitting"
   ],
-  "symptoms": "New fit, replacement or removal request",
-  "likely_causes": "Moving, renovation, worn blinds",
+  "symptoms": [
+   "New fit",
+   "replacement or removal request"
+  ],
+  "likely_causes": [
+   "Moving",
+   "renovation",
+   "worn blinds"
+  ],
   "emergency_indicators": [],
   "safety_instruction": "",
   "questions": [
@@ -37298,8 +38157,17 @@
     "priority": false
    }
   ],
-  "quote_info_needed": "Count, window sizes, blind type, supply, access",
-  "photo_requests": "Photo of windows, existing blinds",
+  "quote_info_needed": [
+   "Count",
+   "window sizes",
+   "blind type",
+   "supply",
+   "access"
+  ],
+  "photo_requests": [
+   "Photo of windows",
+   "existing blinds"
+  ],
   "dispatch_tags": [
    "blinds",
    "install"
@@ -37381,9 +38249,21 @@
     "priority": false
    }
   ],
-  "quote_info_needed": "Brand, model, monitored or not, fault message, age of system",
-  "photo_requests": "Photo of keypad display and panel box",
-  "dispatch_tags": "alarm,fault,security",
+  "quote_info_needed": [
+   "Brand",
+   "model",
+   "monitored or not",
+   "fault message",
+   "age of system"
+  ],
+  "photo_requests": [
+   "Photo of keypad display and panel box"
+  ],
+  "dispatch_tags": [
+   "alarm",
+   "fault",
+   "security"
+  ],
   "urgency_default": "this_week",
   "basis": "knowledge",
   "sources": [],
@@ -37459,9 +38339,21 @@
     "priority": false
    }
   ],
-  "quote_info_needed": "Brand, model, zone list, wired or wireless, pet details",
-  "photo_requests": "Photo of keypad and the sensor involved",
-  "dispatch_tags": "alarm,false alarm,sensor",
+  "quote_info_needed": [
+   "Brand",
+   "model",
+   "zone list",
+   "wired or wireless",
+   "pet details"
+  ],
+  "photo_requests": [
+   "Photo of keypad and the sensor involved"
+  ],
+  "dispatch_tags": [
+   "alarm",
+   "false alarm",
+   "sensor"
+  ],
   "urgency_default": "this_week",
   "basis": "knowledge",
   "sources": [],
@@ -37537,9 +38429,22 @@
     "priority": false
    }
   ],
-  "quote_info_needed": "Property type, number of entry points, floor plan or photos, monitoring preference, budget, pets",
-  "photo_requests": "Photos of main entry doors and where panel could go",
-  "dispatch_tags": "alarm,install,quote",
+  "quote_info_needed": [
+   "Property type",
+   "number of entry points",
+   "floor plan or photos",
+   "monitoring preference",
+   "budget",
+   "pets"
+  ],
+  "photo_requests": [
+   "Photos of main entry doors and where panel could go"
+  ],
+  "dispatch_tags": [
+   "alarm",
+   "install",
+   "quote"
+  ],
   "urgency_default": "flexible",
   "basis": "knowledge",
   "sources": [],
@@ -37623,9 +38528,22 @@
     "priority": false
    }
   ],
-  "quote_info_needed": "Brand, number of cameras, wired or wireless, age, symptoms",
-  "photo_requests": "Photo of recorder front and back, affected camera",
-  "dispatch_tags": "cctv,camera,recorder",
+  "quote_info_needed": [
+   "Brand",
+   "number of cameras",
+   "wired or wireless",
+   "age",
+   "symptoms"
+  ],
+  "photo_requests": [
+   "Photo of recorder front and back",
+   "affected camera"
+  ],
+  "dispatch_tags": [
+   "cctv",
+   "camera",
+   "recorder"
+  ],
   "urgency_default": "this_week",
   "basis": "knowledge",
   "sources": [],
@@ -37701,9 +38619,21 @@
     "priority": false
    }
   ],
-  "quote_info_needed": "Camera count and positions, storeys, cable route, internet, budget",
-  "photo_requests": "Photos of each area to cover and the roof eaves",
-  "dispatch_tags": "cctv,install,quote",
+  "quote_info_needed": [
+   "Camera count and positions",
+   "storeys",
+   "cable route",
+   "internet",
+   "budget"
+  ],
+  "photo_requests": [
+   "Photos of each area to cover and the roof eaves"
+  ],
+  "dispatch_tags": [
+   "cctv",
+   "install",
+   "quote"
+  ],
   "urgency_default": "flexible",
   "basis": "knowledge",
   "sources": [],
@@ -37777,9 +38707,22 @@
     "priority": false
    }
   ],
-  "quote_info_needed": "Brand, model, wired or battery, wifi strength at door, existing chime",
-  "photo_requests": "Photo of doorbell and its wiring if visible, indoor chime",
-  "dispatch_tags": "doorbell,video doorbell,wifi",
+  "quote_info_needed": [
+   "Brand",
+   "model",
+   "wired or battery",
+   "wifi strength at door",
+   "existing chime"
+  ],
+  "photo_requests": [
+   "Photo of doorbell and its wiring if visible",
+   "indoor chime"
+  ],
+  "dispatch_tags": [
+   "doorbell",
+   "video doorbell",
+   "wifi"
+  ],
   "urgency_default": "this_week",
   "basis": "knowledge",
   "sources": [],
@@ -37848,9 +38791,21 @@
     "priority": false
    }
   ],
-  "quote_info_needed": "Model, existing wiring, wall type, wifi at door, gate distance",
-  "photo_requests": "Photo of current doorbell and door frame area",
-  "dispatch_tags": "doorbell,intercom,install",
+  "quote_info_needed": [
+   "Model",
+   "existing wiring",
+   "wall type",
+   "wifi at door",
+   "gate distance"
+  ],
+  "photo_requests": [
+   "Photo of current doorbell and door frame area"
+  ],
+  "dispatch_tags": [
+   "doorbell",
+   "intercom",
+   "install"
+  ],
   "urgency_default": "flexible",
   "basis": "knowledge",
   "sources": [],
@@ -37927,9 +38882,20 @@
     "priority": false
    }
   ],
-  "quote_info_needed": "Brand, type of lock, number of users, building or home",
-  "photo_requests": "Photo of reader or keypad and the lock or gate motor",
-  "dispatch_tags": "access control,gate,fob",
+  "quote_info_needed": [
+   "Brand",
+   "type of lock",
+   "number of users",
+   "building or home"
+  ],
+  "photo_requests": [
+   "Photo of reader or keypad and the lock or gate motor"
+  ],
+  "dispatch_tags": [
+   "access control",
+   "gate",
+   "fob"
+  ],
   "urgency_default": "same_day",
   "basis": "knowledge",
   "sources": [],
@@ -38005,9 +38971,21 @@
     "priority": false
    }
   ],
-  "quote_info_needed": "Product, door type and thickness, home assistant brand, number of devices",
-  "photo_requests": "Photo of door edge and existing lock, product box",
-  "dispatch_tags": "smart lock,smart home,setup",
+  "quote_info_needed": [
+   "Product",
+   "door type and thickness",
+   "home assistant brand",
+   "number of devices"
+  ],
+  "photo_requests": [
+   "Photo of door edge and existing lock",
+   "product box"
+  ],
+  "dispatch_tags": [
+   "smart lock",
+   "smart home",
+   "setup"
+  ],
   "urgency_default": "flexible",
   "basis": "knowledge",
   "sources": [],
@@ -38079,9 +39057,19 @@
     "priority": false
    }
   ],
-  "quote_info_needed": "Number and position of lights, height, wiring access",
-  "photo_requests": "Photo of light and the wall around it",
-  "dispatch_tags": "lighting,sensor,security",
+  "quote_info_needed": [
+   "Number and position of lights",
+   "height",
+   "wiring access"
+  ],
+  "photo_requests": [
+   "Photo of light and the wall around it"
+  ],
+  "dispatch_tags": [
+   "lighting",
+   "sensor",
+   "security"
+  ],
   "urgency_default": "this_week",
   "basis": "knowledge",
   "sources": [],
@@ -38163,9 +39151,23 @@
     "priority": false
    }
   ],
-  "quote_info_needed": "Home type, TV count, antenna visible, roof type and height, symptoms",
-  "photo_requests": "Photo of antenna on roof, wall plate, back of TV",
-  "dispatch_tags": "tv,antenna,reception",
+  "quote_info_needed": [
+   "Home type",
+   "TV count",
+   "antenna visible",
+   "roof type and height",
+   "symptoms"
+  ],
+  "photo_requests": [
+   "Photo of antenna on roof",
+   "wall plate",
+   "back of TV"
+  ],
+  "dispatch_tags": [
+   "tv",
+   "antenna",
+   "reception"
+  ],
   "urgency_default": "this_week",
   "basis": "knowledge",
   "sources": [],
@@ -38238,9 +39240,23 @@
     "priority": false
    }
   ],
-  "quote_info_needed": "Roof type, storeys, TV points, existing cabling, location",
-  "photo_requests": "Photo of roof, house from street, existing cable outlets",
-  "dispatch_tags": "antenna,install,roof",
+  "quote_info_needed": [
+   "Roof type",
+   "storeys",
+   "TV points",
+   "existing cabling",
+   "location"
+  ],
+  "photo_requests": [
+   "Photo of roof",
+   "house from street",
+   "existing cable outlets"
+  ],
+  "dispatch_tags": [
+   "antenna",
+   "install",
+   "roof"
+  ],
   "urgency_default": "flexible",
   "basis": "knowledge",
   "sources": [],
@@ -38308,9 +39324,20 @@
     "priority": false
    }
   ],
-  "quote_info_needed": "TV size and weight, wall type, cable hiding, bracket supplied or not",
-  "photo_requests": "Photo of the wall and the planned spot",
-  "dispatch_tags": "tv,mounting,bracket",
+  "quote_info_needed": [
+   "TV size and weight",
+   "wall type",
+   "cable hiding",
+   "bracket supplied or not"
+  ],
+  "photo_requests": [
+   "Photo of the wall and the planned spot"
+  ],
+  "dispatch_tags": [
+   "tv",
+   "mounting",
+   "bracket"
+  ],
   "urgency_default": "flexible",
   "basis": "knowledge",
   "sources": [],
@@ -38381,9 +39408,21 @@
     "priority": false
    }
   ],
-  "quote_info_needed": "Number of points, locations, router location, access, wall types",
-  "photo_requests": "Photo of router location and each wall point area",
-  "dispatch_tags": "data,ethernet,cabling",
+  "quote_info_needed": [
+   "Number of points",
+   "locations",
+   "router location",
+   "access",
+   "wall types"
+  ],
+  "photo_requests": [
+   "Photo of router location and each wall point area"
+  ],
+  "dispatch_tags": [
+   "data",
+   "ethernet",
+   "cabling"
+  ],
   "urgency_default": "flexible",
   "basis": "knowledge",
   "sources": [],
@@ -38455,9 +39494,21 @@
     "priority": false
    }
   ],
-  "quote_info_needed": "Floor plan size, router type, wall materials, outbuildings",
-  "photo_requests": "Photo of router and its position, rooms affected",
-  "dispatch_tags": "wifi,mesh,network",
+  "quote_info_needed": [
+   "Floor plan size",
+   "router type",
+   "wall materials",
+   "outbuildings"
+  ],
+  "photo_requests": [
+   "Photo of router and its position",
+   "rooms affected"
+  ],
+  "dispatch_tags": [
+   "wifi",
+   "mesh",
+   "network"
+  ],
   "urgency_default": "flexible",
   "basis": "knowledge",
   "sources": [],
@@ -38527,9 +39578,20 @@
     "priority": false
    }
   ],
-  "quote_info_needed": "Connection type, current and new location, distance, access",
-  "photo_requests": "Photo of NBN box and the new location",
-  "dispatch_tags": "nbn,relocation,cabling",
+  "quote_info_needed": [
+   "Connection type",
+   "current and new location",
+   "distance",
+   "access"
+  ],
+  "photo_requests": [
+   "Photo of NBN box and the new location"
+  ],
+  "dispatch_tags": [
+   "nbn",
+   "relocation",
+   "cabling"
+  ],
   "urgency_default": "flexible",
   "basis": "knowledge",
   "sources": [],
@@ -38602,9 +39664,20 @@
     "priority": false
    }
   ],
-  "quote_info_needed": "Connection type, provider report, wall sockets, recent works",
-  "photo_requests": "Photo of modem lights and wall socket",
-  "dispatch_tags": "internet,wiring,nbn",
+  "quote_info_needed": [
+   "Connection type",
+   "provider report",
+   "wall sockets",
+   "recent works"
+  ],
+  "photo_requests": [
+   "Photo of modem lights and wall socket"
+  ],
+  "dispatch_tags": [
+   "internet",
+   "wiring",
+   "nbn"
+  ],
   "urgency_default": "this_week",
   "basis": "knowledge",
   "sources": [],
@@ -38673,9 +39746,19 @@
     "priority": false
    }
   ],
-  "quote_info_needed": "Building address, outlet locations, strata contact",
-  "photo_requests": "Photo of wall outlets and TV message",
-  "dispatch_tags": "tv,unit,strata",
+  "quote_info_needed": [
+   "Building address",
+   "outlet locations",
+   "strata contact"
+  ],
+  "photo_requests": [
+   "Photo of wall outlets and TV message"
+  ],
+  "dispatch_tags": [
+   "tv",
+   "unit",
+   "strata"
+  ],
   "urgency_default": "flexible",
   "basis": "knowledge",
   "sources": [],
@@ -38747,9 +39830,22 @@
     "priority": false
    }
   ],
-  "quote_info_needed": "Length, height, material, slope, access, existing wall condition",
-  "photo_requests": "Photos of the area and any damaged wall",
-  "dispatch_tags": "retaining,garden,landscape",
+  "quote_info_needed": [
+   "Length",
+   "height",
+   "material",
+   "slope",
+   "access",
+   "existing wall condition"
+  ],
+  "photo_requests": [
+   "Photos of the area and any damaged wall"
+  ],
+  "dispatch_tags": [
+   "retaining",
+   "garden",
+   "landscape"
+  ],
   "urgency_default": "flexible",
   "basis": "knowledge",
   "sources": [],
@@ -38819,9 +39915,22 @@
     "priority": false
    }
   ],
-  "quote_info_needed": "Area, existing surface, grass type, access, irrigation, levels",
-  "photo_requests": "Photo of whole lawn and any shady areas",
-  "dispatch_tags": "turf,lawn,landscape",
+  "quote_info_needed": [
+   "Area",
+   "existing surface",
+   "grass type",
+   "access",
+   "irrigation",
+   "levels"
+  ],
+  "photo_requests": [
+   "Photo of whole lawn and any shady areas"
+  ],
+  "dispatch_tags": [
+   "turf",
+   "lawn",
+   "landscape"
+  ],
   "urgency_default": "flexible",
   "basis": "knowledge",
   "sources": [],
@@ -38890,9 +39999,21 @@
     "priority": false
    }
   ],
-  "quote_info_needed": "Area sizes, water source, power, existing pipes, tank",
-  "photo_requests": "Photo of tap area and garden zones",
-  "dispatch_tags": "irrigation,install,garden",
+  "quote_info_needed": [
+   "Area sizes",
+   "water source",
+   "power",
+   "existing pipes",
+   "tank"
+  ],
+  "photo_requests": [
+   "Photo of tap area and garden zones"
+  ],
+  "dispatch_tags": [
+   "irrigation",
+   "install",
+   "garden"
+  ],
   "urgency_default": "flexible",
   "basis": "knowledge",
   "sources": [],
@@ -38968,9 +40089,22 @@
     "priority": false
    }
   ],
-  "quote_info_needed": "Zone numbers, symptoms, controller brand, leak location",
-  "photo_requests": "Photo of leak or wet patch, controller, valve box",
-  "dispatch_tags": "irrigation,leak,sprinkler",
+  "quote_info_needed": [
+   "Zone numbers",
+   "symptoms",
+   "controller brand",
+   "leak location"
+  ],
+  "photo_requests": [
+   "Photo of leak or wet patch",
+   "controller",
+   "valve box"
+  ],
+  "dispatch_tags": [
+   "irrigation",
+   "leak",
+   "sprinkler"
+  ],
   "urgency_default": "this_week",
   "basis": "knowledge",
   "sources": [],
@@ -39040,9 +40174,20 @@
     "priority": false
    }
   ],
-  "quote_info_needed": "Brand, zone count, power, location",
-  "photo_requests": "Photo of controller and its label",
-  "dispatch_tags": "timer,controller,irrigation",
+  "quote_info_needed": [
+   "Brand",
+   "zone count",
+   "power",
+   "location"
+  ],
+  "photo_requests": [
+   "Photo of controller and its label"
+  ],
+  "dispatch_tags": [
+   "timer",
+   "controller",
+   "irrigation"
+  ],
   "urgency_default": "flexible",
   "basis": "knowledge",
   "sources": [],
@@ -39118,9 +40263,19 @@
     "priority": false
    }
   ],
-  "quote_info_needed": "Area size, driveway or path, tree and water factors",
-  "photo_requests": "Photos of affected area from a distance and close up",
-  "dispatch_tags": "paving,pavers,uneven",
+  "quote_info_needed": [
+   "Area size",
+   "driveway or path",
+   "tree and water factors"
+  ],
+  "photo_requests": [
+   "Photos of affected area from a distance and close up"
+  ],
+  "dispatch_tags": [
+   "paving",
+   "pavers",
+   "uneven"
+  ],
   "urgency_default": "this_week",
   "basis": "knowledge",
   "sources": [],
@@ -39188,9 +40343,22 @@
     "priority": false
    }
   ],
-  "quote_info_needed": "Area, type, materials, existing surface, levels, access",
-  "photo_requests": "Photo of area and measurements",
-  "dispatch_tags": "paving,patio,landscape",
+  "quote_info_needed": [
+   "Area",
+   "type",
+   "materials",
+   "existing surface",
+   "levels",
+   "access"
+  ],
+  "photo_requests": [
+   "Photo of area and measurements"
+  ],
+  "dispatch_tags": [
+   "paving",
+   "patio",
+   "landscape"
+  ],
   "urgency_default": "flexible",
   "basis": "knowledge",
   "sources": [],
@@ -39258,9 +40426,21 @@
     "priority": false
    }
   ],
-  "quote_info_needed": "Area, base surface, pets, edging, slope",
-  "photo_requests": "Photo of whole area",
-  "dispatch_tags": "artificial grass,turf,landscape",
+  "quote_info_needed": [
+   "Area",
+   "base surface",
+   "pets",
+   "edging",
+   "slope"
+  ],
+  "photo_requests": [
+   "Photo of whole area"
+  ],
+  "dispatch_tags": [
+   "artificial grass",
+   "turf",
+   "landscape"
+  ],
   "urgency_default": "flexible",
   "basis": "knowledge",
   "sources": [],
@@ -39332,9 +40512,21 @@
     "priority": false
    }
   ],
-  "quote_info_needed": "Area, slope, existing drains, soil, water source",
-  "photo_requests": "Photo of pooling area and surroundings",
-  "dispatch_tags": "drainage,garden,water",
+  "quote_info_needed": [
+   "Area",
+   "slope",
+   "existing drains",
+   "soil",
+   "water source"
+  ],
+  "photo_requests": [
+   "Photo of pooling area and surroundings"
+  ],
+  "dispatch_tags": [
+   "drainage",
+   "garden",
+   "water"
+  ],
   "urgency_default": "this_week",
   "basis": "knowledge",
   "sources": [],
@@ -39401,9 +40593,23 @@
     "priority": false
    }
   ],
-  "quote_info_needed": "Power bills, roof orientation and type, storeys, switchboard, battery plans",
-  "photo_requests": "Photo of roof, switchboard, meter box",
-  "dispatch_tags": "solar,quote,install",
+  "quote_info_needed": [
+   "Power bills",
+   "roof orientation and type",
+   "storeys",
+   "switchboard",
+   "battery plans"
+  ],
+  "photo_requests": [
+   "Photo of roof",
+   "switchboard",
+   "meter box"
+  ],
+  "dispatch_tags": [
+   "solar",
+   "quote",
+   "install"
+  ],
   "urgency_default": "flexible",
   "basis": "sources",
   "sources": [
@@ -39475,9 +40681,23 @@
     "priority": false
    }
   ],
-  "quote_info_needed": "Inverter brand and model, system size, age, backup preference, location",
-  "photo_requests": "Photo of inverter, switchboard, planned battery spot",
-  "dispatch_tags": "battery,solar,upgrade",
+  "quote_info_needed": [
+   "Inverter brand and model",
+   "system size",
+   "age",
+   "backup preference",
+   "location"
+  ],
+  "photo_requests": [
+   "Photo of inverter",
+   "switchboard",
+   "planned battery spot"
+  ],
+  "dispatch_tags": [
+   "battery",
+   "solar",
+   "upgrade"
+  ],
   "urgency_default": "flexible",
   "basis": "sources",
   "sources": [
@@ -39550,9 +40770,24 @@
     "priority": false
    }
   ],
-  "quote_info_needed": "Car model, location, phase, distance, switchboard, solar",
-  "photo_requests": "Photo of switchboard, meter, install location",
-  "dispatch_tags": "ev,charger,electrical",
+  "quote_info_needed": [
+   "Car model",
+   "location",
+   "phase",
+   "distance",
+   "switchboard",
+   "solar"
+  ],
+  "photo_requests": [
+   "Photo of switchboard",
+   "meter",
+   "install location"
+  ],
+  "dispatch_tags": [
+   "ev",
+   "charger",
+   "electrical"
+  ],
   "urgency_default": "flexible",
   "basis": "knowledge",
   "sources": [],
@@ -39619,9 +40854,21 @@
     "priority": false
    }
   ],
-  "quote_info_needed": "System details, roof space, grid limits, goals",
-  "photo_requests": "Photo of inverter label, roof",
-  "dispatch_tags": "solar,upgrade,panels",
+  "quote_info_needed": [
+   "System details",
+   "roof space",
+   "grid limits",
+   "goals"
+  ],
+  "photo_requests": [
+   "Photo of inverter label",
+   "roof"
+  ],
+  "dispatch_tags": [
+   "solar",
+   "upgrade",
+   "panels"
+  ],
   "urgency_default": "flexible",
   "basis": "sources",
   "sources": [
@@ -39696,9 +40943,20 @@
     "priority": false
    }
   ],
-  "quote_info_needed": "Panel count, storeys, pitch, access",
-  "photo_requests": "Photo of panels and roof from ground",
-  "dispatch_tags": "solar,cleaning,panels",
+  "quote_info_needed": [
+   "Panel count",
+   "storeys",
+   "pitch",
+   "access"
+  ],
+  "photo_requests": [
+   "Photo of panels and roof from ground"
+  ],
+  "dispatch_tags": [
+   "solar",
+   "cleaning",
+   "panels"
+  ],
   "urgency_default": "flexible",
   "basis": "knowledge",
   "sources": [],
@@ -39768,9 +41026,21 @@
     "priority": false
    }
   ],
-  "quote_info_needed": "Brand, age, size, location, warranty",
-  "photo_requests": "Photo of inverter and its label",
-  "dispatch_tags": "inverter,solar,replace",
+  "quote_info_needed": [
+   "Brand",
+   "age",
+   "size",
+   "location",
+   "warranty"
+  ],
+  "photo_requests": [
+   "Photo of inverter and its label"
+  ],
+  "dispatch_tags": [
+   "inverter",
+   "solar",
+   "replace"
+  ],
   "urgency_default": "this_week",
   "basis": "knowledge",
   "sources": [],
@@ -39838,9 +41108,20 @@
     "priority": false
    }
   ],
-  "quote_info_needed": "Retailer, system size, phase, NMI if available",
-  "photo_requests": "Photo of meter and switchboard",
-  "dispatch_tags": "solar,approval,export",
+  "quote_info_needed": [
+   "Retailer",
+   "system size",
+   "phase",
+   "NMI if available"
+  ],
+  "photo_requests": [
+   "Photo of meter and switchboard"
+  ],
+  "dispatch_tags": [
+   "solar",
+   "approval",
+   "export"
+  ],
   "urgency_default": "flexible",
   "basis": "knowledge",
   "sources": [],
@@ -39907,9 +41188,20 @@
     "priority": false
    }
   ],
-  "quote_info_needed": "Loads, usage, site, backup",
-  "photo_requests": "Photo of site",
-  "dispatch_tags": "off-grid,solar,shed",
+  "quote_info_needed": [
+   "Loads",
+   "usage",
+   "site",
+   "backup"
+  ],
+  "photo_requests": [
+   "Photo of site"
+  ],
+  "dispatch_tags": [
+   "off-grid",
+   "solar",
+   "shed"
+  ],
   "urgency_default": "flexible",
   "basis": "knowledge",
   "sources": [],
@@ -39979,9 +41271,21 @@
     "priority": false
    }
   ],
-  "quote_info_needed": "Storeys, roof type, gutter length, guards, trees",
-  "photo_requests": "Photo of gutters and house front",
-  "dispatch_tags": "gutters,clean,handyman",
+  "quote_info_needed": [
+   "Storeys",
+   "roof type",
+   "gutter length",
+   "guards",
+   "trees"
+  ],
+  "photo_requests": [
+   "Photo of gutters and house front"
+  ],
+  "dispatch_tags": [
+   "gutters",
+   "clean",
+   "handyman"
+  ],
   "urgency_default": "this_week",
   "basis": "knowledge",
   "sources": [],
@@ -40053,9 +41357,20 @@
     "priority": false
    }
   ],
-  "quote_info_needed": "Areas, surface types, sizes, access to water",
-  "photo_requests": "Photo of each area",
-  "dispatch_tags": "pressure,clean,exterior",
+  "quote_info_needed": [
+   "Areas",
+   "surface types",
+   "sizes",
+   "access to water"
+  ],
+  "photo_requests": [
+   "Photo of each area"
+  ],
+  "dispatch_tags": [
+   "pressure",
+   "clean",
+   "exterior"
+  ],
   "urgency_default": "flexible",
   "basis": "knowledge",
   "sources": [],
@@ -40126,9 +41441,21 @@
     "priority": false
    }
   ],
-  "quote_info_needed": "Item list, volume, access, stairs, hazardous items",
-  "photo_requests": "Photo of all items",
-  "dispatch_tags": "rubbish,removal,junk",
+  "quote_info_needed": [
+   "Item list",
+   "volume",
+   "access",
+   "stairs",
+   "hazardous items"
+  ],
+  "photo_requests": [
+   "Photo of all items"
+  ],
+  "dispatch_tags": [
+   "rubbish",
+   "removal",
+   "junk"
+  ],
   "urgency_default": "this_week",
   "basis": "knowledge",
   "sources": [],
@@ -40195,9 +41522,18 @@
     "priority": false
    }
   ],
-  "quote_info_needed": "Window count, storeys, scope",
-  "photo_requests": "Photo of house exterior",
-  "dispatch_tags": "window,clean",
+  "quote_info_needed": [
+   "Window count",
+   "storeys",
+   "scope"
+  ],
+  "photo_requests": [
+   "Photo of house exterior"
+  ],
+  "dispatch_tags": [
+   "window",
+   "clean"
+  ],
   "urgency_default": "flexible",
   "basis": "knowledge",
   "sources": [],
@@ -40264,9 +41600,23 @@
     "priority": false
    }
   ],
-  "quote_info_needed": "Bedrooms, bathrooms, checklist, deadline, extras",
-  "photo_requests": "Photo of kitchen, bathroom, carpets",
-  "dispatch_tags": "cleaning,lease,vacate",
+  "quote_info_needed": [
+   "Bedrooms",
+   "bathrooms",
+   "checklist",
+   "deadline",
+   "extras"
+  ],
+  "photo_requests": [
+   "Photo of kitchen",
+   "bathroom",
+   "carpets"
+  ],
+  "dispatch_tags": [
+   "cleaning",
+   "lease",
+   "vacate"
+  ],
   "urgency_default": "this_week",
   "basis": "knowledge",
   "sources": [],
@@ -40333,9 +41683,20 @@
     "priority": false
    }
   ],
-  "quote_info_needed": "Inventory, addresses, stairs, truck, date",
-  "photo_requests": "Photo of large items",
-  "dispatch_tags": "moving,furniture",
+  "quote_info_needed": [
+   "Inventory",
+   "addresses",
+   "stairs",
+   "truck",
+   "date"
+  ],
+  "photo_requests": [
+   "Photo of large items"
+  ],
+  "dispatch_tags": [
+   "moving",
+   "furniture"
+  ],
   "urgency_default": "flexible",
   "basis": "knowledge",
   "sources": [],
@@ -40402,9 +41763,18 @@
     "priority": false
    }
   ],
-  "quote_info_needed": "Job list, materials, time",
-  "photo_requests": "Photo of items to assemble",
-  "dispatch_tags": "handyman,odd jobs",
+  "quote_info_needed": [
+   "Job list",
+   "materials",
+   "time"
+  ],
+  "photo_requests": [
+   "Photo of items to assemble"
+  ],
+  "dispatch_tags": [
+   "handyman",
+   "odd jobs"
+  ],
   "urgency_default": "flexible",
   "basis": "knowledge",
   "sources": [],
